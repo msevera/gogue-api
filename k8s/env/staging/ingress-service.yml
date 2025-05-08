@@ -26,7 +26,7 @@ spec:
               service:
                 name: api-cluster-ip-service
                 port:
-                  number: 5000
+                  number: 3000
     - host: www.staging.api.learnbud.ai
       http:
         paths:
@@ -36,4 +36,4 @@ spec:
               service:
                 name: api-cluster-ip-service
                 port:
-                  number: 5000
+                  number: 3000
