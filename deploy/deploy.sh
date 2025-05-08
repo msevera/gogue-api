@@ -7,9 +7,9 @@ gcloud container clusters get-credentials cluster-${CLUSTER}  --location=us-east
 
 kubectl apply -f k8s/namespace.yml
 
-docker build -t us-docker.pkg.dev/learnbud-d317a/docker/api:latest -t us-docker.pkg.dev/learnbud-d317a/docker/api:${PROJECT}-${ENV}-${SHA} .
-docker push us-docker.pkg.dev/learnbud-d317a/docker/api:latest
-docker push us-docker.pkg.dev/learnbud-d317a/docker/api:${PROJECT}-${ENV}-${SHA}
+docker build -t us-docker.pkg.dev/learnbud-d317a/docker/lbapi:latest -t us-docker.pkg.dev/learnbud-d317a/docker/lbapi:${PROJECT}-${ENV}-${SHA} .
+docker push us-docker.pkg.dev/learnbud-d317a/docker/lbapi:latest
+docker push us-docker.pkg.dev/learnbud-d317a/docker/lbapi:${PROJECT}-${ENV}-${SHA}
 
 while IFS="=" read line val || [ -n "$line" ]; do
   if [[ "$line" != "#"* && ${val//[$'\t\r\n']/} != $'' ]]; then
@@ -30,5 +30,5 @@ kubectl apply -f k8s/redis-ssd-persistent-volume.yml -n=${PROJECT}
 kubectl apply -f k8s/redis-statefulset.yml -n=${PROJECT}
 kubectl apply -f k8s/redis-cluster-ip-service.yml -n=${PROJECT}
 
-kubectl set image deployments/api-deployment api=us-docker.pkg.dev/learnbud-d317a/docker/api:${PROJECT}-${ENV}-${SHA} -n=${PROJECT}
+kubectl set image deployments/api-deployment api=us-docker.pkg.dev/learnbud-d317a/docker/lbapi:${PROJECT}-${ENV}-${SHA} -n=${PROJECT}
 kubectl exec statefulset/redis-statefulset -n=${PROJECT} -- sh -c "redis-cli --scan | grep -v ens: | xargs redis-cli del"

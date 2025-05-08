@@ -14,7 +14,7 @@ spec:
     spec:   
       containers:
         - name: api
-          image: learnbud/api
+          image: lbapi
           resources:
             requests:
               memory: "512Mi"
