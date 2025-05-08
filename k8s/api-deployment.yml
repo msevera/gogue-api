@@ -99,4 +99,4 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: api-api-endpoint
-                  key: API_ENDPOINT
+                  key: API_API_ENDPOINT
