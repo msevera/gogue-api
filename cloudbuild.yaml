@@ -1,3 +1,5 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
 steps:
   # COMMON
   - name: 'gcr.io/cloud-builders/gcloud'
