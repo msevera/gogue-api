@@ -20,6 +20,13 @@ spec:
       containers:
         - name: redis
           image: redis
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "400m"
           args: ['--appendonly', 'yes', '--save', '900', '1', '--save', '30', '100']
           ports:
             - containerPort: 6379
