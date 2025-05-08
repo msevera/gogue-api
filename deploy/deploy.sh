@@ -21,12 +21,9 @@ while IFS="=" read line val || [ -n "$line" ]; do
   fi
 done <.env
 
-kubectl delete secret clouddns-dns01-solver-service-account -n=cert-manager
-kubectl create secret generic clouddns-dns01-solver-service-account --from-file=clouddns-dns01-solver-service-account.json -n=cert-manager
-
 kubectl apply -f k8s/ssd-storage-class.yml
 kubectl apply -f k8s/wildcard-certificate-issuer.yml
-kubectl apply -f k8s/${PROJECT}/${ENV} -n=${PROJECT}
+kubectl apply -f k8s/env/${ENV} -n=${PROJECT}
 kubectl apply -f k8s/api-cluster-ip-service.yml -n=${PROJECT}
 kubectl apply -f k8s/api-deployment.yml -n=${PROJECT}
 kubectl apply -f k8s/redis-ssd-persistent-volume.yml -n=${PROJECT}

@@ -85,11 +85,11 @@ spec:
                 secretKeyRef:
                   name: api-onesignal-app-id
                   key: API_ONESIGNAL_APP_ID
-            - name: ONESIGNAL_REST_API_KEY
+            - name: ONESIGNAL_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: api-onesignal-rest-api-key
-                  key: API_ONESIGNAL_REST_API_KEY
+                  name: api-onesignal-api-key
+                  key: API_ONESIGNAL_API_KEY
             - name: NOTIFICATION_SCHEMA
               valueFrom:
                 secretKeyRef:
