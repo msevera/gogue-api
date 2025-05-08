@@ -91,7 +91,7 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URL'),
+        uri: configService.get<string>('DB'),
         connectionFactory: (connection) => {
           connection.plugin(mongooseLeanVirtuals); // Apply the plugin globally
           connection.plugin(mongooseLeanGetters); // Apply the plugin globally

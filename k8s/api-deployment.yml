@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: api
+  template:
+    metadata:
+      labels:
+        component: api
+    spec:   
+      containers:
+        - name: api
+          image: learnbud/api
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          ports:
+            - containerPort: 5000          
+          env:
+            - name: TZ
+              valueFrom:
+                secretKeyRef:
+                  name: api-tz
+                  key: API_TZ
+            - name: NODE_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: api-node-env
+                  key: API_NODE_ENV
+            - name: DB
+              valueFrom:
+                secretKeyRef:
+                  name: api-db
+                  key: API_DB
+            - name: DB_LANGGRAPH
+              valueFrom:
+                secretKeyRef:
+                  name: api-db-langgraph
+                  key: API_DB_LANGGRAPH
+            - name: LANGCHAIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-langchain-api-key
+                  key: API_LANGCHAIN_API_KEY
+            - name: LANGCHAIN_TRACING_V2
+              valueFrom:
+                secretKeyRef:
+                  name: api-langchain-tracing-v2
+                  key: API_LANGCHAIN_TRACING_V2
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-openai-api-key
+                  key: API_OPENAI_API_KEY
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: api-redis-host
+                  key: API_REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: api-redis-port
+                  key: API_REDIS_PORT
+            - name: REDIS_DB
+              valueFrom:
+                secretKeyRef:
+                  name: api-redis-db
+                  key: API_REDIS_DB
+            - name: REDIS_DB_PUBSUB
+              valueFrom:
+                secretKeyRef:
+                  name: api-redis-db-pubsub
+                  key: API_REDIS_DB_PUBSUB
+            - name: ONESIGNAL_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: api-onesignal-app-id
+                  key: API_ONESIGNAL_APP_ID
+            - name: ONESIGNAL_REST_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-onesignal-rest-api-key
+                  key: API_ONESIGNAL_REST_API_KEY
+            - name: NOTIFICATION_SCHEMA
+              valueFrom:
+                secretKeyRef:
+                  name: api-notification-schema
+                  key: API_NOTIFICATION_SCHEMA
+            - name: API_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: api-api-endpoint
+                  key: API_ENDPOINT

@@ -1,0 +1,25 @@
+steps:
+  # COMMON
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'fetch-env'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest \
+          --secret=lb-api-env-$_ENVIRONMENT \
+          --format='get(payload.data)' | base64 --decode > .env
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        chmod +x ./deploy/deploy.sh
+        ./deploy/deploy.sh lb $_ENVIRONMENT $_ENVIRONMENT $COMMIT_SHA
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-east4'
+      - 'GCLOUD_PROJECT=learnbud-d317a'
+
+# Define substitution variables
+substitutions:
+  _ENVIRONMENT: 'staging'
