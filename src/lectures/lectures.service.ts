@@ -9,6 +9,9 @@ import { LectureAgentService } from 'src/lecture-agent/lecture-agent.service';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
+import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
+import { LectureTTSCompletedServiceDto } from './dto/lecture-tts-completed.service.dto';
+import { LectureCreatedServiceDto } from './dto/lecture-created.service.dto';
 
 @Injectable()
 export class LecturesService {
@@ -16,7 +19,8 @@ export class LecturesService {
     private readonly lecturesRepository: LecturesRepository,
     @Inject(forwardRef(() => LectureAgentService))
     private readonly lectureAgentService: LectureAgentService,
-    private readonly pubSubService: PubSubService
+    private readonly pubSubService: PubSubService,
+    @Inject('API_MICROSERVICE') private client: ClientProxy
   ) { }
 
   async createOne(authContext: AuthContextType, input: CreateLectureDto) {
@@ -105,6 +109,19 @@ export class LecturesService {
             dataChunk = data.chunk;
             lecture = await this.lecturesRepository.findOne(authContext, { id: lecture.id });
             await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
+            if (eventName === 'FINALIZING') {
+              await this.client.emit<any, LectureCreatedServiceDto>('lecture.created', {
+                id: lecture.id,
+                topic: lecture.topic,
+                title: lecture.title,
+                emoji: lecture.emoji,
+                userId: lecture.userId,
+                sections: lecture.sections.map(section => ({
+                  title: section.title,
+                  content: section.content
+                }))
+              });
+            }
           }
         } catch (error) {
           console.log('error', error)
@@ -115,5 +132,20 @@ export class LecturesService {
       lecture = await this.lecturesRepository.findOne(authContext, { id: lecture.id });
       await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
     }
+  }
+
+  @MessagePattern('lecture.tts.completed')
+  async handleTTSCompleted(@Payload() message: LectureTTSCompletedServiceDto) {
+    console.log('Received TTS Completed:', message);
+    const { lectureId, audioPath, mfa, aenas } = message;
+    const lecture = await this.lecturesRepository.updateOne(false, { id: lectureId }, {
+      audioPath,
+      mfa,
+      aenas,
+      creationEvent: {
+        name: 'DONE'
+      }
+    });
+    await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
   }
 } 

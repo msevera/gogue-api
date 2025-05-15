@@ -69,6 +69,18 @@ export class Lecture extends WorkspaceEntity {
   @Field(() => LectureCreationEvent, { nullable: true })
   @Prop({ type: LectureCreationEvent })
   creationEvent?: LectureCreationEvent;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  audioPath?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  mfa?: string;
+  
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  aenas?: string;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

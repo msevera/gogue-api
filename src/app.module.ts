@@ -27,11 +27,27 @@ import { LectureAgentModule } from './lecture-agent/lecture-agent.module';
 import { LecturesModule } from './lectures/lectures.module';
 import { NotesModule } from './notes/notes.module';
 import { NoteAgentModule } from './note-agent/note-agent.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
 
 @Module({
   imports: [
+    ClientsModule.registerAsync([
+      {
+        name: 'API_MICROSERVICE',
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: async (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              brokers: [configService.get<string>('KAFKA_BROKER')],
+            },
+          },
+        }),       
+      },
+    ]),
     UsersModule,
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,

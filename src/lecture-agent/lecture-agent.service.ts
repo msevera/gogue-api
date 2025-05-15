@@ -258,17 +258,18 @@ export class LectureAgentService {
     });
 
     try {
-      const createdEvent = 'DONE';
-      await this.lecturesService.updateOne(authContext, lectureId, {
-        sections: plan,
-        creationEvent: {
-          name: createdEvent,
-        }
-      });
+      // Before done event we should generate a highlight maps in python service
+      // const createdEvent = 'DONE';
+      // await this.lecturesService.updateOne(authContext, lectureId, {
+      //   sections: plan,
+      //   creationEvent: {
+      //     name: createdEvent,
+      //   }
+      // });
 
-      await dispatchCustomEvent(createdEvent, {
-        chunk: {}
-      });
+      // await dispatchCustomEvent(createdEvent, {
+      //   chunk: {}
+      // });
 
       return {};
     } catch (error) {
