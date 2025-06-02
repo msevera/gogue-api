@@ -18,10 +18,14 @@ async function bootstrap() {
     options: {
       client: {
         brokers: [configService.get<string>('KAFKA_BROKER')],
+        logLevel: 4,
       },
       consumer: {
-        groupId: 'api-group',
+        groupId: configService.get<string>('KAFKA_PROCESSING_GROUP'),
       },
+      run: {
+        autoCommit: false,
+      }
     }
   });
 

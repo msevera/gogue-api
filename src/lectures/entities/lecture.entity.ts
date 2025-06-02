@@ -21,6 +21,34 @@ export class LectureSection {
   hasContent?: boolean;
 }
 
+@Schema({ _id: false })
+@ObjectType()
+export class AudioPaths {
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  stream?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  wav?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  folder?: string;
+}
+
+@Schema({ _id: false })
+@ObjectType()
+export class Aligners {
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  mfa?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  text?: string;
+}
+
 @CustomSchema()
 @ObjectType()
 export class Lecture extends WorkspaceEntity {
@@ -70,17 +98,13 @@ export class Lecture extends WorkspaceEntity {
   @Prop({ type: LectureCreationEvent })
   creationEvent?: LectureCreationEvent;
 
-  @Field(() => String, { nullable: true })
-  @Prop({ required: false })
-  audioPath?: string;
+  @Field(() => AudioPaths, { nullable: true })
+  @Prop({ required: false, type: AudioPaths })
+  audioPaths?: AudioPaths;
 
-  @Field(() => String, { nullable: true })
-  @Prop({ required: false })
-  mfa?: string;
-  
-  @Field(() => String, { nullable: true })
-  @Prop({ required: false })
-  aenas?: string;
+  @Field(() => Aligners, { nullable: true })
+  @Prop({ required: false, type: Aligners })
+  aligners?: Aligners;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

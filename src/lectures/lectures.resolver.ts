@@ -71,6 +71,16 @@ export class LecturesResolver {
     return true;
   }
 
+  // @Auth(Role.CONSUMER)
+  @Mutation(() => Boolean, { name: 'generateAudio' })
+  async generateAudio(
+    @Args('id', { type: () => ID }) id: string,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    await this.lecturesService.generateAudio(authContext, id);
+    return true;
+  }
+
   @CustomSubscription<LecturesResolver, Lecture>(
     LectureCreatingTopic
   )

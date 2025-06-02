@@ -9,7 +9,7 @@ import { LectureAgentService } from 'src/lecture-agent/lecture-agent.service';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
-import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { LectureTTSCompletedServiceDto } from './dto/lecture-tts-completed.service.dto';
 import { LectureCreatedServiceDto } from './dto/lecture-created.service.dto';
 
@@ -20,7 +20,7 @@ export class LecturesService {
     @Inject(forwardRef(() => LectureAgentService))
     private readonly lectureAgentService: LectureAgentService,
     private readonly pubSubService: PubSubService,
-    @Inject('API_MICROSERVICE') private client: ClientProxy
+    @Inject('KAFKA_PRODUCER') private client: ClientProxy
   ) { }
 
   async createOne(authContext: AuthContextType, input: CreateLectureDto) {
@@ -78,7 +78,7 @@ export class LecturesService {
       workspaceId: authContext.workspaceId,
     });
 
-    try {     
+    try {
       await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
       const eventStream = await this.lectureAgentService.graph.streamEvents(
         {
@@ -103,7 +103,7 @@ export class LecturesService {
         try {
           const isCustomEvent = event === 'on_custom_event';
           if (isCustomEvent) {
-            let eventName: string;            
+            let eventName: string;
             let dataChunk: any = {};
             eventName = name;
             dataChunk = data.chunk;
@@ -134,14 +134,26 @@ export class LecturesService {
     }
   }
 
-  @MessagePattern('lecture.tts.completed')
-  async handleTTSCompleted(@Payload() message: LectureTTSCompletedServiceDto) {
-    console.log('Received TTS Completed:', message);
-    const { lectureId, audioPath, mfa, aenas } = message;
-    const lecture = await this.lecturesRepository.updateOne(false, { id: lectureId }, {
-      audioPath,
-      mfa,
-      aenas,
+  async generateAudio(authContext: AuthContextType, id: string) {
+    const lecture = await this.lecturesRepository.findOne(false, { id });
+    await this.client.emit<any, LectureCreatedServiceDto>('lecture.created', {
+      id: lecture.id,
+      topic: lecture.topic,
+      title: lecture.title,
+      emoji: lecture.emoji,
+      userId: lecture.userId,
+      sections: lecture.sections.map(section => ({
+        title: section.title,
+        content: section.content
+      }))
+    });
+  }
+
+  async handleTTSCompleted(lectureTTSCompleted: LectureTTSCompletedServiceDto) {
+    const { id, audioPaths, aligners } = lectureTTSCompleted;
+    const lecture = await this.lecturesRepository.updateOne(false, { id }, {
+      audioPaths,
+      aligners,
       creationEvent: {
         name: 'DONE'
       }

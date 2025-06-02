@@ -1,20 +1,17 @@
-import { IsString } from 'class-validator';
+import { IsObject, IsString } from 'class-validator';
 import { IsNotEmpty } from 'class-validator';
+import { Aligners, AudioPaths } from '../entities/lecture.entity';
 
 export class LectureTTSCompletedServiceDto {
   @IsString()
   @IsNotEmpty()
   id: string;
 
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
-  audioPath: string;
+  audioPaths: AudioPaths;
 
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
-  mfa: string;
-
-  @IsString()
-  @IsNotEmpty()
-  aenas: string;
+  aligners: Aligners;
 }

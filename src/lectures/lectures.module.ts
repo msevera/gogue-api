@@ -7,14 +7,18 @@ import { LectureSectionResolver, LecturesResolver } from './lectures.resolver';
 import { UsersModule } from 'src/users/users.module';
 import { PubSubModule } from 'src/pubsub/pubsub.module';
 import { LectureAgentModule } from 'src/lecture-agent/lecture-agent.module';
+import { KafkaModule } from 'src/kafka/kafka.module';
+import { LectureTTSController } from './lectures.controller';
 
 @Module({
   imports: [
     forwardRef(() => LectureAgentModule),
     PubSubModule,
     MongooseModule.forFeature([{ name: Lecture.name, schema: LectureEntity }]),
-    UsersModule,    
+    UsersModule,
+    KafkaModule,    
   ],
+  controllers: [LectureTTSController],
   providers: [LecturesResolver, LectureSectionResolver, LecturesService, LecturesRepository],
   exports: [MongooseModule, LecturesService, LecturesRepository]
 })
