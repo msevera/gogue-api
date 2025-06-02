@@ -6,13 +6,14 @@ import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { NoteCreatedTopic } from './topics/note-created.topic';
+import { FindNotesDto } from './dto/find-notes.dto';
 
 @Injectable()
 export class NotesService {
   constructor(private readonly notesRepository: NotesRepository, private pubSubService: PubSubService) { }
 
-  async find(authContext: AuthContextType, pagination?: PaginationDto<Note>) {
-    return this.notesRepository.find(authContext, {}, pagination);
+  async find(authContext: AuthContextType, input: FindNotesDto, pagination?: PaginationDto<Note>) {
+    return this.notesRepository.find(authContext, input, pagination);
   }
 
   async findOne(authContext: AuthContextType, id: string) {
@@ -28,8 +29,7 @@ export class NotesService {
       ...createNoteDto,
       userId: authContext.user.id,
       workspaceId: authContext.workspaceId
-    });
-    this.pubSubService.publish(NoteCreatedTopic, note);
+    });    
     return note;
   }
 }

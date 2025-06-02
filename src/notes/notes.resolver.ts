@@ -13,6 +13,8 @@ import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
 import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
 import { NoteCreatedTopic } from './topics/note-created.topic';
 import { PubSubService } from 'src/pubsub/pubsub.service';
+import { CreateNoteDto } from './dto/create-note.dto';
+import { FindNotesDto } from './dto/find-notes.dto';
 @Resolver(() => Note)
 export class NotesResolver {
   constructor(private readonly notesService: NotesService, private readonly pubSubService: PubSubService) { }
@@ -28,10 +30,11 @@ export class NotesResolver {
   @Auth(Role.CONSUMER)
   @Query(() => NotesCursorDto, { name: 'notes' })
   async find(
+    @Args('input') input: FindNotesDto,
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Note>,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.notesService.find(authContext, pagination);
+    return this.notesService.find(authContext, input, pagination);
   }
 
   @Auth(Role.CONSUMER)
@@ -53,10 +56,14 @@ export class NotesResolver {
     return true;
   }
 
-  @CustomSubscription<NotesResolver, Note>(
-    NoteCreatedTopic
-  )
-  noteCreated() {
-    return this.pubSubService.subscribe(NoteCreatedTopic);
+  @Auth(Role.CONSUMER)
+  @Mutation(() => Boolean, { name: 'createNote' })
+  async createOne(
+    @Args('input') input: CreateNoteDto,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    await this.notesService.createOne(authContext, input);
+    return true;
   }
+
 } 

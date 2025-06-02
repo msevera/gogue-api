@@ -5,14 +5,11 @@ import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import mongoose from 'mongoose';
 import { Lecture } from 'src/lectures/entities/lecture.entity';
+import { Note } from 'src/notes/entities/note.entity';
 
 @CustomSchema()
 @ObjectType()
-export class Note extends WorkspaceEntity { 
-  @Field(() => String)
-  @Prop({ required: true })
-  title: string;
-
+export class NoteMessage extends WorkspaceEntity {   
   @Field(() => User)
   user?: User;
 
@@ -41,9 +38,31 @@ export class Note extends WorkspaceEntity {
   })
   lectureId: string;
 
+  @Field(() => Note)
+  note?: Note;
+
+  @Field(() => ID)
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Note',
+    get: (value: mongoose.Schema.Types.ObjectId) => {
+      return value.toString();
+    },
+    required: true,
+  })
+  noteId: string;
+
+  @Field(() => String)
+  @Prop({ required: true })
+  content: string;
+
+  @Field(() => String)
+  @Prop({ required: true })
+  role: string;
+
   @Field(() => Date)
   @Prop({ required: true, type: Date })
   timestamp: Date;
 }
 
-export const NoteEntity = SchemaFactory.createForClass(Note); 
+export const NoteMessageEntity = SchemaFactory.createForClass(NoteMessage); 
