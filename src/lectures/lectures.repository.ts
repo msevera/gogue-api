@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Lecture } from './entities/lecture.entity';
 import { CurrentAuthRepository } from '@app/common/database/current-auth.repository';
+import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 
 @Injectable()
 export class LecturesRepository extends CurrentAuthRepository<Lecture> {

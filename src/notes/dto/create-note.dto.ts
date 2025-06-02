@@ -1,11 +1,20 @@
-import { IsMongoId, IsNotEmpty, IsDate } from 'class-validator';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsMongoId, IsNotEmpty, IsDate, IsOptional } from 'class-validator';
 
-export class CreateNoteDto {
+@InputType('CreateNoteInput')
+export class CreateNoteInputDto {
+  @IsMongoId()
+  @IsOptional()
+  @Field()
+  id: string;
+
   @IsNotEmpty()
   @IsMongoId()
+  @Field()
   lectureId: string;
 
   @IsDate()
   @IsNotEmpty()
+  @Field()
   timestamp: Date;
 }

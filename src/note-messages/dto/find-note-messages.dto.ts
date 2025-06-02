@@ -1,7 +1,10 @@
+import { Field, InputType } from '@nestjs/graphql';
 import { IsMongoId, IsNotEmpty } from 'class-validator';
 
-export class FindNoteMessagesDto {
+@InputType('FindNoteMessagesInput')
+export class FindNoteMessagesInputDto {
   @IsNotEmpty()
   @IsMongoId()
-  lectureId: string;
+  @Field()
+  noteId: string;
 }

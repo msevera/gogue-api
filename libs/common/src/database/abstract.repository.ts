@@ -220,7 +220,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
   async create(
     authContext: AuthContextType | false,
-    document: Omit<TDocument, 'id'> & Partial<Pick<TDocument, 'userId' | 'workspaceId'>>,
+    document: Omit<TDocument, 'id'>, //& Partial<Pick<TDocument, 'userId' | 'workspaceId'>>,
     options: SessionOptions = {},
   ): Promise<TDocument> {
     const documentWithAuth = this.addCurrentAuthToQuery(authContext, document, true);

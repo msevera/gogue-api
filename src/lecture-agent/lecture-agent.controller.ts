@@ -94,41 +94,4 @@ export class LectureAgentController {
       })();
     });
   }
-
-  @Post('agent-message')
-  async agentMessage(@Body() body: any, @Headers('x-lecture-id') lectureId: string, @Headers('x-user-id') userId: string, @Headers('x-workspace-id') workspaceId: string) {
-    const user = await this.usersService.findOne(null, userId);
-    const authContext: AuthContextType = {
-      user: user,
-      workspaceId
-    }
-
-    const { message } = body;
-    if (message.type === 'tool-calls') {
-      const noteToolCall = message.toolCalls.find(tc => tc.function.name === 'create_note');
-      if (noteToolCall) {
-        const { title, content } = noteToolCall.function.arguments;
-        await this.notesService.createOne(authContext, {
-          title,
-          content,
-          lectureId
-        });       
-      }
-    }
-
-    if (message.type === 'end-of-call-report') {
-      await this.lectureAgentCheckpointService.graph.invoke(
-        {
-          lectureId,
-          transcript: body.message.transcript
-        },
-        {
-          configurable: { 
-            thread_id: `${lectureId}-${new Date().getTime()}`,
-            authContext
-          }
-        }
-      );
-    }
-  }
 }

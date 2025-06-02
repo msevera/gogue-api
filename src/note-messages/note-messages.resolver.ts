@@ -9,7 +9,7 @@ import { NoteMessagesService } from './note-messages.service';
 import { NoteMessage } from './entities/note-message.entity';
 import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
 import { Note } from 'src/notes/entities/note.entity';
-import { FindNoteMessagesDto } from './dto/find-note-messages.dto';
+import { FindNoteMessagesInputDto } from './dto/find-note-messages.dto';
 
 @Resolver(() => NoteMessage)
 export class NoteMessagesResolver {
@@ -26,7 +26,7 @@ export class NoteMessagesResolver {
   @Auth(Role.CONSUMER)
   @Query(() => NoteMessagesCursorDto, { name: 'noteMessages' })
   async find(
-    @Args('input') input: FindNoteMessagesDto,
+    @Args('input') input: FindNoteMessagesInputDto,
     @Args('pagination', { nullable: true }) pagination: PaginationDto<NoteMessage>,
     @AuthContext() authContext: AuthContextType
   ) {

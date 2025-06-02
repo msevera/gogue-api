@@ -40,6 +40,9 @@ export class LectureCreatedServiceDto {
 
   @IsNotEmpty()
   userId: string;
+
+  @IsNotEmpty()
+  workspaceId: string;
   
   @Type(() => LectureSectionDto)
   @IsNotEmpty()

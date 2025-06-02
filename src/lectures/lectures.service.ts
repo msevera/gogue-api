@@ -12,16 +12,19 @@ import { UpdateLectureDto } from './dto/update-lecture.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { LectureTTSCompletedServiceDto } from './dto/lecture-tts-completed.service.dto';
 import { LectureCreatedServiceDto } from './dto/lecture-created.service.dto';
+import { AbstractService } from '@app/common/services/abstract.service';
 
 @Injectable()
-export class LecturesService {
+export class LecturesService extends AbstractService<Lecture> {
   constructor(
     private readonly lecturesRepository: LecturesRepository,
     @Inject(forwardRef(() => LectureAgentService))
     private readonly lectureAgentService: LectureAgentService,
     private readonly pubSubService: PubSubService,
     @Inject('KAFKA_PRODUCER') private client: ClientProxy
-  ) { }
+  ) {
+    super(lecturesRepository);
+  }
 
   async createOne(authContext: AuthContextType, input: CreateLectureDto) {
     return this.lecturesRepository.create(authContext, {
@@ -31,8 +34,6 @@ export class LecturesService {
       title: input.title,
       emoji: input.emoji,
       sections: input.sections,
-      userId: authContext.user.id,
-      workspaceId: authContext.workspaceId
     });
   }
 
@@ -50,10 +51,6 @@ export class LecturesService {
 
   async find(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
     return this.lecturesRepository.find(authContext, {}, pagination);
-  }
-
-  async findOne(authContext: AuthContextType, id: string) {
-    return this.lecturesRepository.findOne(authContext, { id });
   }
 
   async deleteOne(authContext: AuthContextType, id: string) {
@@ -74,8 +71,6 @@ export class LecturesService {
       creationEvent: {
         name: 'INIT'
       },
-      userId: authContext.user.id,
-      workspaceId: authContext.workspaceId,
     });
 
     try {
@@ -116,6 +111,7 @@ export class LecturesService {
                 title: lecture.title,
                 emoji: lecture.emoji,
                 userId: lecture.userId,
+                workspaceId: lecture.workspaceId,
                 sections: lecture.sections.map(section => ({
                   title: section.title,
                   content: section.content
@@ -142,6 +138,7 @@ export class LecturesService {
       title: lecture.title,
       emoji: lecture.emoji,
       userId: lecture.userId,
+      workspaceId: lecture.workspaceId,
       sections: lecture.sections.map(section => ({
         title: section.title,
         content: section.content
