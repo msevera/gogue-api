@@ -41,9 +41,9 @@ export class Note extends WorkspaceEntity {
   })
   lectureId: string;
 
-  @Field(() => Date)
-  @Prop({ required: true, type: Date })
-  timestamp: Date;
+  @Field()
+  @Prop({ required: true, type: Number })
+  timestamp: number;
 }
 
 export const NoteEntity = SchemaFactory.createForClass(Note); 

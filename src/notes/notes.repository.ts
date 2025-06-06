@@ -14,17 +14,13 @@ export class NotesRepository extends CurrentAuthRepository<Note> {
     super(noteModel, Note);
   }
 
-
-  async createWithId(authContext: AuthContextType, document: Partial<Note>) {
+  async createWithId(authContext: AuthContextType, document: Omit<Note, 'userId' | 'workspaceId'>) {
     const resource = await super.create(authContext, {
       _id: document.id,
-      title: '',
-      lectureId: '',
-      timestamp: new Date()
+      ...document
     });
 
     return resource;
 
   }
-
 } 

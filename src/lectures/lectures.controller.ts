@@ -15,7 +15,7 @@ export class LectureTTSController {
     const message = context.getMessage();
     const partition = context.getPartition();
     const offset = message.offset;
-    consumer.commitOffsets([{ topic, partition, offset: (Number(offset) + 1).toString() }])
+    await consumer.commitOffsets([{ topic, partition, offset: (Number(offset) + 1).toString() }])
     await this.lecturesService.handleTTSCompleted(data);
   }
 }

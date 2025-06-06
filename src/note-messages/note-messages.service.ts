@@ -8,13 +8,18 @@ import { NoteMessageCreatedServiceDto } from './dto/note-message-created.service
 import { NotesService } from 'src/notes/notes.service';
 import { AbstractService } from '@app/common/services/abstract.service';
 import { UsersService } from 'src/users/users.service';
+import { NoteCreatedTopic } from 'src/notes/topics/note-created.topic';
+import { Note } from 'src/notes/entities/note.entity';
+import { PubSubService } from 'src/pubsub/pubsub.service';
 
 @Injectable()
 export class NoteMessagesService extends AbstractService<NoteMessage> {
   constructor(
     private readonly noteMessagesRepository: NoteMessagesRepository,
     private readonly notesService: NotesService,
-    private readonly usersService: UsersService) {
+    private readonly usersService: UsersService,
+    private readonly pubSubService: PubSubService
+  ) {
     super(noteMessagesRepository);
   }
 
@@ -34,17 +39,17 @@ export class NoteMessagesService extends AbstractService<NoteMessage> {
       note = await this.notesService.createOne(authContext, {
         id: input.noteId,
         lectureId: input.lectureId,
-        timestamp: new Date(input.noteTimestamp)
-      });
+        timestamp: input.noteTimestamp
+      });      
     }
 
-    const noteMessages = input.noteMessages.map(noteMessage => ({
-      ...noteMessage,
+    const noteMessage = {
+      ...input.message,
       noteId: note.id,
       lectureId: note.lectureId,
-      timestamp: new Date(noteMessage.timestamp)
-    }));
+      timestamp: new Date(input.message.timestamp)
+    };
 
-    return this.noteMessagesRepository.createMany(authContext, noteMessages);
+    return this.noteMessagesRepository.create(authContext, noteMessage);
   }
 }

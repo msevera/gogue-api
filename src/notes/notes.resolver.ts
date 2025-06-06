@@ -12,6 +12,8 @@ import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { CreateNoteInputDto } from './dto/create-note.dto';
 import { FindNotesInputDto } from './dto/find-notes.dto';
+import { NoteCreatedTopic } from './topics/note-created.topic';
+import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
 
 @Resolver(() => Note)
 export class NotesResolver {
@@ -64,4 +66,13 @@ export class NotesResolver {
     return true;
   }
 
+  @CustomSubscription<NotesResolver, Note>(
+    NoteCreatedTopic,
+    (resolver: NotesResolver, payload: Note, variables: any) => {
+      return payload.lectureId === variables.lectureId;
+    }
+  )
+  noteCreated(@Args('lectureId', { type: () => ID }) lectureId: string) {
+    return this.pubSubService.subscribe(NoteCreatedTopic);
+  }
 } 

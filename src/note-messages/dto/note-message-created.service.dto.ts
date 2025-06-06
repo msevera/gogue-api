@@ -35,9 +35,9 @@ export class NoteMessageCreatedServiceDto {
 
   @IsString()
   @IsNotEmpty()
-  noteTimestamp: string;
+  noteTimestamp: number;
 
   @IsArray()
   @IsNotEmpty()
-  noteMessages: NoteMessage[];
+  message: NoteMessage;
 }
