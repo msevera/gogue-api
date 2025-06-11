@@ -6,9 +6,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { NotesResolver } from './notes.resolver';
 import { PubSubModule } from 'src/pubsub/pubsub.module';
 import { LecturesModule } from 'src/lectures/lectures.module';
+import { LectureMetadataModule } from 'src/lecture-metadata/lecture-metadata.module';
 
 @Module({
   imports: [
+    LectureMetadataModule,
     forwardRef(() => LecturesModule),
     PubSubModule,
     MongooseModule.forFeature([{ name: Note.name, schema: NoteEntity }]),

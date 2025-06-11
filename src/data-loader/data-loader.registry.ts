@@ -1,9 +1,11 @@
 import { UsersRepository } from 'src/users/users.repository';
 import { UsersDataLoader } from 'src/users/data-loaders/users.data-loader';
 import { LecturesRepository } from 'src/lectures/lectures.repository';
-import { LectureDataLoader } from 'src/lectures/data-loaders/items.data-loader';
+import { LectureDataLoader } from 'src/lectures/data-loaders/lectures.data-loader';
 import { NoteDataLoader } from 'src/notes/data-loaders/notes.data-loader';
 import { NotesRepository } from 'src/notes/notes.repository';
+import { LectureMetadataRepository } from 'src/lecture-metadata/lecture-metadata.repository';
+import { LectureMetadataDataLoader } from 'src/lecture-metadata/data-loaders/lecture-metadata.data-loader';
 
 export class DataLoaderRegistry {
   private cache: Record<string, any> = {};
@@ -12,6 +14,7 @@ export class DataLoaderRegistry {
     private readonly usersRepository: UsersRepository,
     private readonly lecturesRepository: LecturesRepository,
     private readonly notesRepository: NotesRepository,
+    private readonly lectureMetadataRepository: LectureMetadataRepository,
   ) {}
 
   /**
@@ -46,6 +49,13 @@ export class DataLoaderRegistry {
     return this.get(
       'notes',
       () => new NoteDataLoader(this.notesRepository),
+    );
+  }
+
+  public get lectureMetadata() {
+    return this.get(
+      'lectureMetadata',
+      () => new LectureMetadataDataLoader(this.lectureMetadataRepository),
     );
   }
 }

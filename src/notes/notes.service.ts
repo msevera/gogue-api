@@ -9,13 +9,15 @@ import { FindNotesInputDto } from './dto/find-notes.dto';
 import { AbstractService } from '@app/common/services/abstract.service';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { NoteCreatedTopic } from './topics/note-created.topic';
+import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
 
 @Injectable()
 export class NotesService extends AbstractService<Note> {
   constructor(
     private readonly notesRepository: NotesRepository,
     private readonly lecturesService: LecturesService,
-    private readonly pubSubService: PubSubService
+    private readonly pubSubService: PubSubService,
+    private readonly lectureMetadataService: LectureMetadataService
   ) {
     super(notesRepository);
   }
@@ -41,6 +43,8 @@ export class NotesService extends AbstractService<Note> {
       lectureId: createNoteDto.lectureId,
       timestamp: createNoteDto.timestamp,
     });
+
+    await this.lectureMetadataService.addNote(authContext, createNoteDto.lectureId);
 
     await this.pubSubService.publish<Note>(NoteCreatedTopic, note);
 

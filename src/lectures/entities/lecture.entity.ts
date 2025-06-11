@@ -5,6 +5,7 @@ import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import mongoose from 'mongoose';
 import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import { LectureCreationEvent } from '../dto/lecture-event.dto';
+import { LectureMetadata } from 'src/lecture-metadata/entities/lecture-metadata.entity';
 
 @Schema({ _id: false })
 @ObjectType()
@@ -90,10 +91,6 @@ export class Lecture extends WorkspaceEntity {
   @Prop({ type: [LectureSection] })
   sections: LectureSection[];
 
-  @Field(() => String, { nullable: true })
-  @Prop()
-  checkpoint?: string;
-
   @Field(() => LectureCreationEvent, { nullable: true })
   @Prop({ type: LectureCreationEvent })
   creationEvent?: LectureCreationEvent;
@@ -105,6 +102,13 @@ export class Lecture extends WorkspaceEntity {
   @Field(() => Aligners, { nullable: true })
   @Prop({ required: false, type: Aligners })
   aligners?: Aligners;
+
+  @Field(() => LectureMetadata, { nullable: true })  
+  metadata?: LectureMetadata;
+
+  @Field(() => Number, { nullable: true })
+  @Prop({ required: false })
+  audioDuration?: number;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

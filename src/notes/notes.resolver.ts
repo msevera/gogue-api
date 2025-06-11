@@ -57,13 +57,12 @@ export class NotesResolver {
   }
 
   @Auth(Role.CONSUMER)
-  @Mutation(() => Boolean, { name: 'createNote' })
+  @Mutation(() => Note, { name: 'createNote' })
   async createOne(
     @Args('input') input: CreateNoteInputDto,
     @AuthContext() authContext: AuthContextType
   ) {
-    await this.notesService.createOne(authContext, input);
-    return true;
+    return await this.notesService.createOne(authContext, input);    
   }
 
   @CustomSubscription<NotesResolver, Note>(

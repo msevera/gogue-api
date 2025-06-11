@@ -1,4 +1,4 @@
-import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { LecturesService } from './lectures.service';
 import { Lecture, LectureSection } from './entities/lecture.entity';
 import { CreateLectureDto } from './dto/create-lecture.dto';
@@ -13,6 +13,8 @@ import { CustomSubscription } from '@app/common/subscriptions/custom-subscriptio
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
 import { LectureAgentInputDto } from 'src/lecture-agent/dto/lecture-agent-input.dto';
+import { LectureMetadata } from 'src/lecture-metadata/entities/lecture-metadata.entity';
+import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
 
 
 
@@ -32,6 +34,15 @@ export class LecturesResolver {
     private readonly lecturesService: LecturesService,
     private readonly pubSubService: PubSubService
   ) { }
+
+  @ResolveField('metadata', () => LectureMetadata)
+  async metadata(
+    @Parent() item: Lecture,
+    @Context() { dataLoaders }: { dataLoaders: DataLoaderRegistry },
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return dataLoaders.lectureMetadata.findOneWithAuth(authContext, item.id.toString());
+  }
 
   @Auth(Role.CONSUMER)
   @Query(() => LecturesCursorDto, { name: 'lectures' })
