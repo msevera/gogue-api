@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, forwardRef, Injectable } from '@nestjs/common';
 import { NoteMessagesRepository } from './note-messages.repository';
 import { NoteMessage } from './entities/note-message.entity';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
@@ -8,17 +8,14 @@ import { NoteMessageCreatedServiceDto } from './dto/note-message-created.service
 import { NotesService } from 'src/notes/notes.service';
 import { AbstractService } from '@app/common/services/abstract.service';
 import { UsersService } from 'src/users/users.service';
-import { NoteCreatedTopic } from 'src/notes/topics/note-created.topic';
-import { Note } from 'src/notes/entities/note.entity';
-import { PubSubService } from 'src/pubsub/pubsub.service';
 
 @Injectable()
 export class NoteMessagesService extends AbstractService<NoteMessage> {
   constructor(
-    private readonly noteMessagesRepository: NoteMessagesRepository,
+    @Inject(forwardRef(() => NotesService))
     private readonly notesService: NotesService,
-    private readonly usersService: UsersService,
-    private readonly pubSubService: PubSubService
+    private readonly noteMessagesRepository: NoteMessagesRepository,    
+    private readonly usersService: UsersService
   ) {
     super(noteMessagesRepository);
   }
@@ -51,5 +48,9 @@ export class NoteMessagesService extends AbstractService<NoteMessage> {
     };
 
     return this.noteMessagesRepository.create(authContext, noteMessage);
+  }
+
+  async deleteMessages(authContext: AuthContextType, noteId: string) {
+    return this.noteMessagesRepository.deleteMany(authContext, { noteId });
   }
 }

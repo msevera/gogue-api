@@ -361,4 +361,16 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
     return resource;
   }
+
+  async deleteMany(
+    authContext: AuthContextType | false,
+    filter: Partial<TDocument>,
+    options: LeanOptions & SessionOptions = { lean: true },
+  ): Promise<boolean> {
+    const filterQuery = this.buildFilterQuery(filter);
+    const cleanQuery = this.cleanQuery(filterQuery);
+    const query = this.addCurrentAuthToQuery(authContext, cleanQuery);
+    await this.model.deleteMany(query).session(options.session);    
+    return true;
+  }
 }

@@ -47,13 +47,12 @@ export class NotesResolver {
   }
 
   @Auth(Role.CONSUMER)
-  @Mutation(() => Boolean, { name: 'deleteNote' })
+  @Mutation(() => Note, { name: 'deleteNote' })
   async deleteOne(
     @Args('id', { type: () => ID }) id: string,
     @AuthContext() authContext: AuthContextType
   ) {
-    await this.notesService.deleteOne(authContext, id);
-    return true;
+    return this.notesService.deleteOne(authContext, id);
   }
 
   @Auth(Role.CONSUMER)

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { NotesRepository } from './notes.repository';
 import { Note } from './entities/note.entity';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
@@ -10,14 +10,20 @@ import { AbstractService } from '@app/common/services/abstract.service';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { NoteCreatedTopic } from './topics/note-created.topic';
 import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
+import { NoteMessagesService } from 'src/note-messages/note-messages.service';
+import { ClientProxy } from '@nestjs/microservices';
+import { NoteDeletedServiceDto } from './dto/note-deleted-service.dto';
 
 @Injectable()
 export class NotesService extends AbstractService<Note> {
   constructor(
+    @Inject(forwardRef(() => NoteMessagesService))
+    private readonly noteMessagesService: NoteMessagesService,
     private readonly notesRepository: NotesRepository,
     private readonly lecturesService: LecturesService,
     private readonly pubSubService: PubSubService,
-    private readonly lectureMetadataService: LectureMetadataService
+    private readonly lectureMetadataService: LectureMetadataService,    
+    @Inject('KAFKA_PRODUCER') private client: ClientProxy
   ) {
     super(notesRepository);
   }
@@ -27,7 +33,15 @@ export class NotesService extends AbstractService<Note> {
   }
 
   async deleteOne(authContext: AuthContextType, id: string) {
-    return this.notesRepository.deleteOne(authContext, { id });
+    const noteToRemove = await this.notesRepository.findOne(authContext, { id });
+    await this.noteMessagesService.deleteMessages(authContext, id);
+    const resource = await this.notesRepository.deleteOne(authContext, { id });
+    await this.lectureMetadataService.removeNote(authContext, noteToRemove.lectureId);
+    await this.client.emit<any, NoteDeletedServiceDto>('note.deleted', {
+      id
+    });
+
+    return resource;
   }
 
   async createOne(authContext: AuthContextType, createNoteDto: CreateNoteInputDto) {

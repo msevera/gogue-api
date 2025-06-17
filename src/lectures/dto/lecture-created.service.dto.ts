@@ -11,16 +11,6 @@ class LectureSectionDto {
   content?: string;
 }
 
-class LectureUserDto {
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-
-  @IsString()
-  @IsOptional()
-  name?: string;
-}
-
 export class LectureCreatedServiceDto {
   @IsString()
   @IsNotEmpty()
