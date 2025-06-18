@@ -24,7 +24,7 @@ export class LectureSection {
 
 @Schema({ _id: false })
 @ObjectType()
-export class AudioPaths {
+export class Audio {
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
   stream?: string;
@@ -36,6 +36,14 @@ export class AudioPaths {
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
   folder?: string;
+
+  @Field(() => Number, { nullable: true })
+  @Prop({ required: false })
+  duration?: number;
+
+  @Field(() => [Number], { nullable: true })
+  @Prop({ required: false })
+  bars?: number[];
 }
 
 @Schema({ _id: false })
@@ -95,9 +103,9 @@ export class Lecture extends WorkspaceEntity {
   @Prop({ type: LectureCreationEvent })
   creationEvent?: LectureCreationEvent;
 
-  @Field(() => AudioPaths, { nullable: true })
-  @Prop({ required: false, type: AudioPaths })
-  audioPaths?: AudioPaths;
+  @Field(() => Audio, { nullable: true })
+  @Prop({ required: false, type: Audio })
+  audio?: Audio;
 
   @Field(() => Aligners, { nullable: true })
   @Prop({ required: false, type: Aligners })
@@ -105,10 +113,6 @@ export class Lecture extends WorkspaceEntity {
 
   @Field(() => LectureMetadata, { nullable: true })  
   metadata?: LectureMetadata;
-
-  @Field(() => Number, { nullable: true })
-  @Prop({ required: false })
-  audioDuration?: number;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

@@ -1,6 +1,6 @@
 import { IsNumber, IsObject, IsString } from 'class-validator';
 import { IsNotEmpty } from 'class-validator';
-import { Aligners, AudioPaths } from '../entities/lecture.entity';
+import { Aligners, Audio } from '../entities/lecture.entity';
 
 export class LectureTTSCompletedServiceDto {
   @IsString()
@@ -9,13 +9,9 @@ export class LectureTTSCompletedServiceDto {
 
   @IsObject()
   @IsNotEmpty()
-  audioPaths: AudioPaths;
+  audio: Audio;
 
   @IsObject()
   @IsNotEmpty()
   aligners: Aligners;
-
-  @IsNumber()
-  @IsNotEmpty()
-  duration: number;
 }

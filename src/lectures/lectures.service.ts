@@ -147,14 +147,13 @@ export class LecturesService extends AbstractService<Lecture> {
   }
 
   async handleTTSCompleted(lectureTTSCompleted: LectureTTSCompletedServiceDto) {
-    const { id, audioPaths, aligners, duration } = lectureTTSCompleted;
+    const { id, audio, aligners } = lectureTTSCompleted;
     const lecture = await this.lecturesRepository.updateOne(false, { id }, {
-      audioPaths,
+      audio,
       aligners,
       creationEvent: {
         name: 'DONE'
       },
-      audioDuration: duration
     });
     await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
   }
