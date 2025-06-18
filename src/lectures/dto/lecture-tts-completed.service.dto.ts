@@ -1,6 +1,6 @@
 import { IsNumber, IsObject, IsString } from 'class-validator';
 import { IsNotEmpty } from 'class-validator';
-import { Aligners, Audio } from '../entities/lecture.entity';
+import { Aligners, Audio, Image } from '../entities/lecture.entity';
 
 export class LectureTTSCompletedServiceDto {
   @IsString()
@@ -14,4 +14,8 @@ export class LectureTTSCompletedServiceDto {
   @IsObject()
   @IsNotEmpty()
   aligners: Aligners;
+
+  @IsObject()
+  @IsNotEmpty()
+  image: Image;
 }

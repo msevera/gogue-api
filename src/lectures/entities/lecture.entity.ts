@@ -58,6 +58,30 @@ export class Aligners {
   text?: string;
 }
 
+@Schema({ _id: false })
+@ObjectType()
+export class Image {
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  prompt?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  webp?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  folder?: string;
+
+  @Field(() => Number, { nullable: true })
+  @Prop({ required: false })
+  width?: number;
+
+  @Field(() => Number, { nullable: true })
+  @Prop({ required: false })
+  height?: number;
+}
+
 @CustomSchema()
 @ObjectType()
 export class Lecture extends WorkspaceEntity {
@@ -113,6 +137,10 @@ export class Lecture extends WorkspaceEntity {
 
   @Field(() => LectureMetadata, { nullable: true })  
   metadata?: LectureMetadata;
+
+  @Field(() => Image, { nullable: true })
+  @Prop({ required: false, type: Image })
+  image?: Image;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

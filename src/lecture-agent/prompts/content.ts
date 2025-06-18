@@ -7,6 +7,8 @@ Instructions:
 4. Make this section interesting to listent to. Do not make it boring.
 5. Avoid jargon unless truly necessary; if you use it, define it briefly.
 6. Present your answer as text without a title
+7. Do not use any markdown formatting.
+8. Only use dots for sentence endings.
 
 Inputs:
 - section title: {SECTION_TITLE}
