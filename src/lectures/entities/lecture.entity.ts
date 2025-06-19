@@ -80,6 +80,10 @@ export class Image {
   @Field(() => Number, { nullable: true })
   @Prop({ required: false })
   height?: number;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  color?: string;
 }
 
 @CustomSchema()
