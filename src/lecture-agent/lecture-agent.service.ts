@@ -10,20 +10,40 @@ import { SystemMessagePromptTemplate } from '@langchain/core/prompts';
 import { prompt as normalizePrompt } from './prompts/normalize';
 import { prompt as planPrompt } from './prompts/plan';
 import { prompt as contentPrompt } from './prompts/content';
+import { prompt as overviewPrompt } from './prompts/overview';
+import { prompt as categoriesPrompt } from './prompts/categories';
 import { responseSchema as planAgentResponseSchema } from './schemas/plan-agent';
 import { responseSchema as normalizeAgentResponseSchema } from './schemas/normalize-agent';
+import { responseSchema as overviewAgentResponseSchema } from './schemas/overview-agent';
+import { responseSchema as categoriesAgentResponseSchema } from './schemas/categories-agent';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { LecturesService } from 'src/lectures/lectures.service';
+import { CategoriesService } from 'src/categories/categories.service';
+
+
+class ContentAnnotation {
+  startIndex: number;
+  endIndex: number;
+  title: string;
+  type: string;
+  url: string;
+}
 
 class PlanSection {
   title: string;
   duration: number;
   content: string;
+  annotations: ContentAnnotation[];
+}
+
+class Category {
+  name: string
+  id: string
 }
 
 @Injectable()
 export class LectureAgentService {
-  
+
   private graphAnnotation = Annotation.Root({
     input: Annotation<string>(),
     duration: Annotation<number>(),
@@ -31,17 +51,23 @@ export class LectureAgentService {
     title: Annotation<string>(),
     emoji: Annotation<string>(),
     plan: Annotation<PlanSection[]>(),
+    overview: Annotation<string>(),
+    sectionsOverview: Annotation<string[]>(),
+    categories: Annotation<Category[]>()
   });
   private builder: any;
   private _graph: any;
   private planModel: any;
   normalizeModel: any;
   contentModel: any;
+  overviewModel: any;
+  categoriesModel: any;
 
   constructor(
     private configService: ConfigService,
     @Inject(forwardRef(() => LecturesService))
     private lecturesService: LecturesService,
+    private categoriesService: CategoriesService,
   ) {
 
     const modelSettings = {
@@ -63,19 +89,40 @@ export class LectureAgentService {
       }
     });
 
+    this.overviewModel = new ChatOpenAI({
+      ...modelSettings,
+      modelKwargs: {
+        response_format: overviewAgentResponseSchema
+      }
+    });
+
+    this.categoriesModel = new ChatOpenAI({
+      ...modelSettings,
+      modelKwargs: {
+        response_format: categoriesAgentResponseSchema
+      }
+    });
+
     this.contentModel = new ChatOpenAI({
-      ...modelSettings,     
-    }).bindTools([{ type: "web_search_preview" }]);
+      ...modelSettings,
+    }).bindTools([{ type: "web_search_preview" }], { tool_choice: 'web_search_preview' });
 
     this.builder = new StateGraph(this.graphAnnotation)
       .addNode('normalizeNode', this.normalizeNode)
       .addNode('planNode', this.planNode)
       .addNode('contentNode', this.contentNode)
       .addNode('finalNode', this.finalNode)
+      .addNode('beforeExtractionNode', this.beforeExtractionNode)
+      .addNode('overviewNode', this.overviewNode)
+      .addNode('categoriesNode', this.categoriesNode)
       .addEdge(START, 'normalizeNode')
       .addEdge('normalizeNode', 'planNode')
       .addConditionalEdges('planNode', this.routeToContentNode)
       .addEdge('contentNode', 'planNode')
+      .addEdge('beforeExtractionNode', 'overviewNode')
+      .addEdge('beforeExtractionNode', 'categoriesNode')
+      .addEdge('overviewNode', 'finalNode')
+      .addEdge('categoriesNode', 'finalNode')
       .addEdge('finalNode', END);
 
     this._graph = this.builder.compile({
@@ -178,7 +225,7 @@ export class LectureAgentService {
       return 'contentNode';
     }
 
-    return 'finalNode';
+    return 'beforeExtractionNode';
   }
 
 
@@ -223,19 +270,73 @@ export class LectureAgentService {
 
     const result = await this.contentModel.invoke([...prompt]);
     const [firstResult] = result.content;
-    
+
     return {
       plan: plan.map((section) => {
         if (section.title === title) {
-          return { ...section, content: firstResult.text };
+          return {
+            ...section,
+            content: firstResult.text,
+            annotations: firstResult?.annotations?.map(annotation => ({
+              startIndex: annotation.start_index,
+              endIndex: annotation.end_index,
+              title: annotation.title,
+              type: annotation.type,
+              url: annotation.url
+            }))
+          };
         }
         return section;
       })
     };
   }
 
+  private beforeExtractionNode = (
+    state: typeof this.graphAnnotation.State
+  ) => {
+    const { plan } = state;
+    return { plan }
+  }
 
-  private finalNode = async (
+  private overviewNode = async (
+    state: typeof this.graphAnnotation.State,
+    config?: RunnableConfig,
+  ) => {
+    const { plan, title, topic } = state;
+    const { authContext, lectureId } = config.configurable as {
+      authContext: AuthContextType;
+      lectureId: string;
+    };
+
+    const generatingOverviewEvent = 'GENERATING_OVERVIEW';
+    await this.lecturesService.updateOne(authContext, lectureId, {
+      sections: plan,
+      creationEvent: {
+        name: generatingOverviewEvent,
+      }
+    });
+
+    await dispatchCustomEvent(generatingOverviewEvent, {
+      chunk: {}
+    });
+
+    const systemPrompt =
+      SystemMessagePromptTemplate.fromTemplate(overviewPrompt);
+
+    const prompt = await systemPrompt.invoke({
+      TOPIC: topic,
+      TITLE: title,
+      SECTIONS: plan.map(section => `<section_title>${section.title}</section_title>\n<section_text>${section.content}</section_text>`).join('\n')
+    });
+
+    const result = await this.overviewModel.invoke([...prompt]);
+    const parsed = JSON.parse(result.content as string);
+    const { lecture_overview, sections } = parsed;
+
+    return { overview: lecture_overview, sectionsOverview: sections };
+  }
+
+  private categoriesNode = async (
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
@@ -245,31 +346,82 @@ export class LectureAgentService {
       lectureId: string;
     };
 
-    const finalizingEvent = 'FINALIZING';
-    await this.lecturesService.updateOne(authContext, lectureId, {
+    const generatingCategoriesEvent = 'GENERATING_CATEGORIES';
+    const lecture = await this.lecturesService.updateOne(authContext, lectureId, {
       sections: plan,
       creationEvent: {
-        name: finalizingEvent,
+        name: generatingCategoriesEvent,
       }
     });
 
-    await dispatchCustomEvent(finalizingEvent, {
+    await dispatchCustomEvent(generatingCategoriesEvent, {
       chunk: {}
     });
 
-    try {
-      // Before done event we should generate a highlight maps in python service
-      // const createdEvent = 'DONE';
-      // await this.lecturesService.updateOne(authContext, lectureId, {
-      //   sections: plan,
-      //   creationEvent: {
-      //     name: createdEvent,
-      //   }
-      // });
+    const systemPrompt =
+      SystemMessagePromptTemplate.fromTemplate(categoriesPrompt);
 
-      // await dispatchCustomEvent(createdEvent, {
-      //   chunk: {}
-      // });
+    const topCategories = await this.categoriesService.findByNameEmbeddings(lecture.topicEmbeddings);
+
+    const prompt = await systemPrompt.invoke({
+      EXISTING_CATEGORIES: JSON.stringify(topCategories),
+      CONTENT: lecture.sections.map(section => section.content).join('\n'),
+    });
+
+    const result = await this.categoriesModel.invoke([...prompt]);
+    const parsed = JSON.parse(result.content as string);
+    const { categories } = parsed;
+
+    return {
+      categories: categories.map(category => ({
+        name: category.category_name,
+        id: category.category_id
+      }))
+    };
+  }
+
+
+  private finalNode = async (
+    state: typeof this.graphAnnotation.State,
+    config?: RunnableConfig,
+  ) => {
+    try {
+      const { overview, sectionsOverview, plan, categories } = state;
+      const { authContext, lectureId } = config.configurable as {
+        authContext: AuthContextType;
+        lectureId: string;
+      };
+
+      const finalizingEvent = 'FINALIZING';
+
+      const newCategories = await this.categoriesService.createMany(
+        categories
+          .filter(category => category.id === 'NEW')
+          .map(category => ({
+            name: category.name,
+          }))
+      );
+
+      const existingCategories = categories.filter(category => category.id !== 'NEW');
+
+      await this.lecturesService.updateOne(authContext, lectureId, {
+        overview,
+        categories: [...existingCategories, ...newCategories]
+          .map(category => ({
+            categoryId: category.id
+          })),
+        sections: plan.map((section, index) => ({
+          ...section,
+          overview: sectionsOverview[index]
+        })),
+        creationEvent: {
+          name: finalizingEvent,
+        }
+      });
+
+      await dispatchCustomEvent(finalizingEvent, {
+        chunk: {}
+      });
 
       return {};
     } catch (error) {

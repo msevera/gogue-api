@@ -1,25 +1,17 @@
 import { AuthContext, AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { SsePost } from '@app/common/decorators/sse-post.decorator';
-import { HumanMessage, isAIMessageChunk, RemoveMessage, trimMessages } from '@langchain/core/messages';
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { LectureAgentInputDto } from './dto/lecture-agent-input.dto';
-import { ChatOpenAI } from '@langchain/openai';
 import { LectureAgentService } from './lecture-agent.service';
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
-import { LecturesService } from 'src/lectures/lectures.service';
-import { LectureAgentCheckpointService } from './lecture-agent-checkpoint.service';
-import { UsersService } from 'src/users/users.service';
-import { NotesService } from 'src/notes/notes.service';
+
 @Controller('lecture-agent')
 export class LectureAgentController {
   constructor(
-    private readonly lectureAgentService: LectureAgentService, 
-    private readonly lecturesService: LecturesService, 
-    private readonly usersService: UsersService,
-    private readonly lectureAgentCheckpointService: LectureAgentCheckpointService,
-    private readonly notesService: NotesService
+    private readonly lectureAgentService: LectureAgentService,
+
   ) { }
 
   private getThreadId(authContext: AuthContextType) {

@@ -13,6 +13,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { LectureTTSCompletedServiceDto } from './dto/lecture-tts-completed.service.dto';
 import { LectureCreatedServiceDto } from './dto/lecture-created.service.dto';
 import { AbstractService } from '@app/common/services/abstract.service';
+import { EmbeddingsService } from 'src/embeddings/embeddings.service';
 
 @Injectable()
 export class LecturesService extends AbstractService<Lecture> {
@@ -21,6 +22,7 @@ export class LecturesService extends AbstractService<Lecture> {
     @Inject(forwardRef(() => LectureAgentService))
     private readonly lectureAgentService: LectureAgentService,
     private readonly pubSubService: PubSubService,
+    private readonly embeddingsService: EmbeddingsService,
     @Inject('KAFKA_PRODUCER') private client: ClientProxy
   ) {
     super(lecturesRepository);
@@ -39,18 +41,25 @@ export class LecturesService extends AbstractService<Lecture> {
 
   async updateOne(authContext: AuthContextType, id: string, updateLectureDto: UpdateLectureDto) {
     return this.lecturesRepository.updateOne(authContext, { id }, {
-      $set: updateLectureDto
+      $set: {
+        ...updateLectureDto,
+        topicEmbeddings: updateLectureDto.topic ? await this.embeddingsService.embeddings.embedQuery(updateLectureDto.topic) : undefined,
+      }
     });
   }
 
-  async setCheckpoint(authContext: AuthContextType, id: string, checkpoint: string) {
-    return this.lecturesRepository.updateOne(authContext, { id }, {
-      checkpoint
-    });
+
+  async findOnePending(
+    authContext: AuthContextType | false,
+  ) {
+    const resource = await this.lecturesRepository.findOnePending(authContext);
+    return resource;
   }
 
   async find(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
-    return this.lecturesRepository.find(authContext, {}, pagination);
+    return this.lecturesRepository.find(authContext, {
+      'creationEvent.name': 'DONE'
+    }, pagination);
   }
 
   async deleteOne(authContext: AuthContextType, id: string) {

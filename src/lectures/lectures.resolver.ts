@@ -54,6 +54,15 @@ export class LecturesResolver {
   }
 
   @Auth(Role.CONSUMER)
+  @Query(() => Lecture, { name: 'pendingLecture', nullable: true })
+  async pendingLecture(
+    @AuthContext() authContext: AuthContextType
+  ) {
+    const lecture = await this.lecturesService.findOnePending(authContext);
+    return lecture;
+  }
+
+  @Auth(Role.CONSUMER)
   @Query(() => Lecture, { name: 'lecture', nullable: true })
   async findOne(
     @Args('id', { type: () => ID }) id: string,
