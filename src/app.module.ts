@@ -28,6 +28,7 @@ import { LecturesModule } from './lectures/lectures.module';
 import { NotesModule } from './notes/notes.module';
 import { NoteAgentModule } from './note-agent/note-agent.module';
 import { NoteMessagesModule } from './note-messages/note-messages.module';
+import { CategoriesModule } from './categories/categories.module';
 
 ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
 
@@ -126,7 +127,8 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
     LecturesModule,
     NotesModule,
     NoteAgentModule,
-    NoteMessagesModule
+    NoteMessagesModule,
+    CategoriesModule
   ],
   controllers: [AppController],
   providers: [AppService],

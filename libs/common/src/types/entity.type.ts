@@ -1,7 +1,7 @@
 import { Field, ID } from '@nestjs/graphql';
 import { Prop } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Workspace } from 'src/workspaces/enitities/workspace.entity';
+import { Workspace } from '../../../../src/workspaces/enitities/workspace.entity';
 
 export class EntityBase {
   _id?: string;

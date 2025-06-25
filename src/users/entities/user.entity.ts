@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Workspace } from 'src/workspaces/enitities/workspace.entity';
+import { Workspace } from '../../../src/workspaces/enitities/workspace.entity';
 import { CacheEntity } from '@app/common/types/cache-entity.type';
 import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';

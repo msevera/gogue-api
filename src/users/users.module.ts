@@ -6,7 +6,7 @@ import { User, UserEntity } from './entities/user.entity';
 import { FirebaseService } from '../firebase/firebase.service';
 import { FirebaseModule } from '../firebase/firebase.module';
 import { UsersRepository } from './users.repository';
-import { WorkspacesModule } from 'src/workspaces/workspaces.module';
+import { WorkspacesModule } from '../workspaces/workspaces.module';
 
 @Module({
   imports: [

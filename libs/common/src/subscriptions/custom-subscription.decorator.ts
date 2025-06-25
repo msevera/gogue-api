@@ -1,5 +1,5 @@
-import { Subscription, ReturnTypeFunc, SubscriptionOptions } from '@nestjs/graphql';
-import { TopicBuilderType, TopicType } from 'src/pubsub/pubsub.service';
+import { Subscription } from '@nestjs/graphql';
+import { TopicBuilderType, TopicType } from '../../../../src/pubsub/pubsub.service';
 
 export function CustomSubscription<R, T>(
   topic: TopicType<T>,

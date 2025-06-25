@@ -3,7 +3,7 @@ import { AbstractService } from '@app/common/services/abstract.service';
 import { Category } from './entities/category.entity';
 import { CategoriesRepository } from './categories.repository';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { EmbeddingsService } from 'src/embeddings/embeddings.service';
+import { EmbeddingsService } from '../embeddings/embeddings.service';
 
 @Injectable()
 export class CategoriesService extends AbstractService<Category> {

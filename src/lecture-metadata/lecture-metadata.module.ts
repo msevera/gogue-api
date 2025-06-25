@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import { LectureMetadata } from './entities/lecture-metadata.entity';
 import { LectureMetadataEntity } from './entities/lecture-metadata.entity';
 import { LectureMetadataService } from './lecture-metadata.service';

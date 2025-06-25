@@ -4,16 +4,16 @@ import { Lecture } from './entities/lecture.entity';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
-import { LectureAgentInputDto } from 'src/lecture-agent/dto/lecture-agent-input.dto';
-import { LectureAgentService } from 'src/lecture-agent/lecture-agent.service';
-import { PubSubService } from 'src/pubsub/pubsub.service';
+import { LectureAgentInputDto } from '../lecture-agent/dto/lecture-agent-input.dto';
+import { LectureAgentService } from '../lecture-agent/lecture-agent.service';
+import { PubSubService } from '../pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { LectureTTSCompletedServiceDto } from './dto/lecture-tts-completed.service.dto';
 import { LectureCreatedServiceDto } from './dto/lecture-created.service.dto';
 import { AbstractService } from '@app/common/services/abstract.service';
-import { EmbeddingsService } from 'src/embeddings/embeddings.service';
+import { EmbeddingsService } from '../embeddings/embeddings.service';
 
 @Injectable()
 export class LecturesService extends AbstractService<Lecture> {
@@ -40,10 +40,17 @@ export class LecturesService extends AbstractService<Lecture> {
   }
 
   async updateOne(authContext: AuthContextType, id: string, updateLectureDto: UpdateLectureDto) {
+    const update: any = {
+      ...updateLectureDto,      
+    }
+
+    if (updateLectureDto.topic) {
+      update.topicEmbeddings = await this.embeddingsService.embeddings.embedQuery(updateLectureDto.topic)
+    }
+
     return this.lecturesRepository.updateOne(authContext, { id }, {
       $set: {
-        ...updateLectureDto,
-        topicEmbeddings: updateLectureDto.topic ? await this.embeddingsService.embeddings.embedQuery(updateLectureDto.topic) : undefined,
+        ...update,        
       }
     });
   }
@@ -123,7 +130,8 @@ export class LecturesService extends AbstractService<Lecture> {
                 workspaceId: lecture.workspaceId,
                 sections: lecture.sections.map(section => ({
                   title: section.title,
-                  content: section.content
+                  content: section.content,
+                  annotations: section.annotations
                 }))
               });
             }
@@ -150,7 +158,8 @@ export class LecturesService extends AbstractService<Lecture> {
       workspaceId: lecture.workspaceId,
       sections: lecture.sections.map(section => ({
         title: section.title,
-        content: section.content
+        content: section.content,
+        annotations: section.annotations
       }))
     });
   }

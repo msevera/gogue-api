@@ -4,13 +4,13 @@ import { Note } from './entities/note.entity';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { CreateNoteInputDto } from './dto/create-note.dto';
-import { LecturesService } from 'src/lectures/lectures.service';
+import { LecturesService } from '../lectures/lectures.service';
 import { FindNotesInputDto } from './dto/find-notes.dto';
 import { AbstractService } from '@app/common/services/abstract.service';
-import { PubSubService } from 'src/pubsub/pubsub.service';
+import { PubSubService } from '../pubsub/pubsub.service';
 import { NoteCreatedTopic } from './topics/note-created.topic';
-import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
-import { NoteMessagesService } from 'src/note-messages/note-messages.service';
+import { LectureMetadataService } from '../lecture-metadata/lecture-metadata.service';
+import { NoteMessagesService } from '../note-messages/note-messages.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { NoteDeletedServiceDto } from './dto/note-deleted-service.dto';
 

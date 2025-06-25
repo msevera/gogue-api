@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../../src/users/entities/user.entity';
 import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import mongoose from 'mongoose';
 import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import { LectureCreationEvent } from '../dto/lecture-event.dto';
-import { LectureMetadata } from 'src/lecture-metadata/entities/lecture-metadata.entity';
-import { Category } from 'src/categories/entities/category.entity';
+import { LectureMetadata } from '../../../src/lecture-metadata/entities/lecture-metadata.entity';
+import { Category } from '../../../src/categories/entities/category.entity';
 
 
 @Schema({ _id: false })
@@ -122,7 +122,7 @@ export class Image {
 
 @Schema({ _id: false })
 @ObjectType()
-class LectureCategory {
+export class LectureCategory {
   @Field(() => ID)
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

@@ -4,11 +4,11 @@ import { NotesRepository } from './notes.repository';
 import { Note, NoteEntity } from './entities/note.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotesResolver } from './notes.resolver';
-import { PubSubModule } from 'src/pubsub/pubsub.module';
-import { LecturesModule } from 'src/lectures/lectures.module';
-import { LectureMetadataModule } from 'src/lecture-metadata/lecture-metadata.module';
-import { NoteMessagesModule } from 'src/note-messages/note-messages.module';
-import { KafkaModule } from 'src/kafka/kafka.module';
+import { PubSubModule } from '../pubsub/pubsub.module';
+import { LecturesModule } from '../lectures/lectures.module';
+import { LectureMetadataModule } from '../lecture-metadata/lecture-metadata.module';
+import { NoteMessagesModule } from '../note-messages/note-messages.module';
+import { KafkaModule } from '../kafka/kafka.module';
 
 @Module({
   imports: [

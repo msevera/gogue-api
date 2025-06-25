@@ -1,6 +1,6 @@
 import { Args, Context, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { LecturesService } from './lectures.service';
-import { Lecture, LectureSection } from './entities/lecture.entity';
+import { Lecture, LectureCategory, LectureSection } from './entities/lecture.entity';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { AuthContext } from '@app/common/decorators/auth-context.decorator';
@@ -10,11 +10,12 @@ import { LecturesCursorDto } from './dto/lectures-cursor.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 
 import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
-import { PubSubService } from 'src/pubsub/pubsub.service';
+import { PubSubService } from '../pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
-import { LectureAgentInputDto } from 'src/lecture-agent/dto/lecture-agent-input.dto';
-import { LectureMetadata } from 'src/lecture-metadata/entities/lecture-metadata.entity';
+import { LectureAgentInputDto } from '../lecture-agent/dto/lecture-agent-input.dto';
+import { LectureMetadata } from '../lecture-metadata/entities/lecture-metadata.entity';
 import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
+import { Category } from 'src/categories/entities/category.entity';
 
 
 
@@ -27,6 +28,17 @@ export class LectureSectionResolver {
     return section?.content?.length > 0;
   }
 }
+
+@Resolver(() => LectureCategory)
+export class LectureCategoryResolver {
+  @ResolveField('category', () => Category)
+  async category(
+    @Parent() item: LectureCategory,
+    @Context() { dataLoaders }: { dataLoaders: DataLoaderRegistry }
+  ) {
+    return dataLoaders.categories.findOne(item.categoryId.toString());
+  }
+} 
 
 @Resolver(() => Lecture)
 export class LecturesResolver {

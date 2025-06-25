@@ -17,8 +17,8 @@ import { responseSchema as normalizeAgentResponseSchema } from './schemas/normal
 import { responseSchema as overviewAgentResponseSchema } from './schemas/overview-agent';
 import { responseSchema as categoriesAgentResponseSchema } from './schemas/categories-agent';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
-import { LecturesService } from 'src/lectures/lectures.service';
-import { CategoriesService } from 'src/categories/categories.service';
+import { LecturesService } from '../lectures/lectures.service';
+import { CategoriesService } from '../categories/categories.service';
 
 
 class ContentAnnotation {
@@ -105,7 +105,7 @@ export class LectureAgentService {
 
     this.contentModel = new ChatOpenAI({
       ...modelSettings,
-    }).bindTools([{ type: "web_search_preview" }], { tool_choice: 'web_search_preview' });
+    }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
     this.builder = new StateGraph(this.graphAnnotation)
       .addNode('normalizeNode', this.normalizeNode)
@@ -333,7 +333,7 @@ export class LectureAgentService {
     const parsed = JSON.parse(result.content as string);
     const { lecture_overview, sections } = parsed;
 
-    return { overview: lecture_overview, sectionsOverview: sections };
+    return { overview: lecture_overview, sectionsOverview: sections.map(section => section.section_overview) };
   }
 
   private categoriesNode = async (
@@ -364,7 +364,10 @@ export class LectureAgentService {
     const topCategories = await this.categoriesService.findByNameEmbeddings(lecture.topicEmbeddings);
 
     const prompt = await systemPrompt.invoke({
-      EXISTING_CATEGORIES: JSON.stringify(topCategories),
+      EXISTING_CATEGORIES: JSON.stringify(topCategories.map(category => ({
+        name: category.name,
+        id: category.id
+      }))),
       CONTENT: lecture.sections.map(section => section.content).join('\n'),
     });
 
@@ -425,7 +428,7 @@ export class LectureAgentService {
 
       return {};
     } catch (error) {
-      console.error(error);
+      console.error('Lecture agent error:', JSON.stringify(error, null, 2));
       throw new Error('Failed to create lecture');
     }
   }

@@ -1,7 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { REQUEST_USER_KEY, REQUEST_WORKSPACE_ID_KEY } from '../constants/auth.constant';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../../../src/users/entities/user.entity';
 
 export type AuthContextType = {
   user: User;

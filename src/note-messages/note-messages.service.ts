@@ -5,9 +5,9 @@ import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { FindNoteMessagesInputDto } from './dto/find-note-messages.dto';
 import { NoteMessageCreatedServiceDto } from './dto/note-message-created.service.dto';
-import { NotesService } from 'src/notes/notes.service';
+import { NotesService } from '../notes/notes.service';
 import { AbstractService } from '@app/common/services/abstract.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class NoteMessagesService extends AbstractService<NoteMessage> {

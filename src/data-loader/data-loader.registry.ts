@@ -1,11 +1,13 @@
-import { UsersRepository } from 'src/users/users.repository';
-import { UsersDataLoader } from 'src/users/data-loaders/users.data-loader';
-import { LecturesRepository } from 'src/lectures/lectures.repository';
-import { LectureDataLoader } from 'src/lectures/data-loaders/lectures.data-loader';
-import { NoteDataLoader } from 'src/notes/data-loaders/notes.data-loader';
-import { NotesRepository } from 'src/notes/notes.repository';
-import { LectureMetadataRepository } from 'src/lecture-metadata/lecture-metadata.repository';
-import { LectureMetadataDataLoader } from 'src/lecture-metadata/data-loaders/lecture-metadata.data-loader';
+import { UsersRepository } from '../users/users.repository';
+import { UsersDataLoader } from '../users/data-loaders/users.data-loader';
+import { LecturesRepository } from '../lectures/lectures.repository';
+import { LectureDataLoader } from '../lectures/data-loaders/lectures.data-loader';
+import { NoteDataLoader } from '../notes/data-loaders/notes.data-loader';
+import { NotesRepository } from '../notes/notes.repository';
+import { LectureMetadataRepository } from '../lecture-metadata/lecture-metadata.repository';
+import { LectureMetadataDataLoader } from '../lecture-metadata/data-loaders/lecture-metadata.data-loader';
+import { CategoriesRepository } from '../categories/categories.repository';
+import { CategoriesDataLoader } from '../categories/data-loaders/categories.data-loader';
 
 export class DataLoaderRegistry {
   private cache: Record<string, any> = {};
@@ -15,6 +17,7 @@ export class DataLoaderRegistry {
     private readonly lecturesRepository: LecturesRepository,
     private readonly notesRepository: NotesRepository,
     private readonly lectureMetadataRepository: LectureMetadataRepository,
+    private readonly categoriesRepository: CategoriesRepository,
   ) {}
 
   /**
@@ -56,6 +59,13 @@ export class DataLoaderRegistry {
     return this.get(
       'lectureMetadata',
       () => new LectureMetadataDataLoader(this.lectureMetadataRepository),
+    );
+  }
+
+  public get categories() {
+    return this.get(
+      'categories',
+      () => new CategoriesDataLoader(this.categoriesRepository),
     );
   }
 }

@@ -7,8 +7,8 @@ import { NoteMessagesCursorDto } from './dto/note-messages-cursor.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { NoteMessagesService } from './note-messages.service';
 import { NoteMessage } from './entities/note-message.entity';
-import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
-import { Note } from 'src/notes/entities/note.entity';
+import { DataLoaderRegistry } from '../data-loader/data-loader.registry';
+import { Note } from '../notes/entities/note.entity';
 import { FindNoteMessagesInputDto } from './dto/find-note-messages.dto';
 
 @Resolver(() => NoteMessage)

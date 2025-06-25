@@ -1,10 +1,10 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../../src/users/entities/user.entity';
 import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import mongoose from 'mongoose';
-import { Lecture } from 'src/lectures/entities/lecture.entity';
+import { Lecture } from '../../lectures/entities/lecture.entity';
 
 @CustomSchema()
 @ObjectType()
