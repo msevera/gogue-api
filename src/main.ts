@@ -13,21 +13,21 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        brokers: [configService.get<string>('KAFKA_BROKER')],
-        logLevel: 4,
-      },
-      consumer: {
-        groupId: configService.get<string>('KAFKA_PROCESSING_GROUP'),
-      },
-      run: {
-        autoCommit: false,
-      }
-    }
-  });
+  // app.connectMicroservice<MicroserviceOptions>({
+  //   transport: Transport.KAFKA,
+  //   options: {
+  //     client: {
+  //       brokers: [configService.get<string>('KAFKA_BROKER')],
+  //       logLevel: 4,
+  //     },
+  //     consumer: {
+  //       groupId: configService.get<string>('KAFKA_PROCESSING_GROUP'),
+  //     },
+  //     run: {
+  //       autoCommit: false,
+  //     }
+  //   }
+  // });
 
   // Increase payload size limit to 50MB
   app.use(json({ limit: '50mb' }));

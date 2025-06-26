@@ -3,6 +3,7 @@ import { AbstractService } from '@app/common/services/abstract.service';
 import { LectureMetadataRepository } from './lecture-metadata.repository';
 import { LectureMetadata } from './entities/lecture-metadata.entity';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
+import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
 
 @Injectable()
 export class LectureMetadataService extends AbstractService<LectureMetadata> {
@@ -12,28 +13,41 @@ export class LectureMetadataService extends AbstractService<LectureMetadata> {
     super(lectureMetadataRepository);
   }
 
-  async addPlaybackTimestamp(authContext: AuthContextType, lectureId: string, timestamp: number) {
-    const lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
+  async setPlaybackTimestamp(authContext: AuthContextType, lectureId: string, timestamp: number) {
+    let lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
     if (!lectureMetadata) {
-      await this.lectureMetadataRepository.create(authContext, { lectureId, playbackTimestamp: timestamp });
+      lectureMetadata = await this.lectureMetadataRepository.create(authContext, { lectureId, playbackTimestamp: timestamp, status: LectureMetadataStatus.IN_PROGRESS });
     } else {
-      await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $set: { playbackTimestamp: timestamp } });
+      lectureMetadata = await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $set: { playbackTimestamp: timestamp, status: LectureMetadataStatus.IN_PROGRESS } });
     }
+    return lectureMetadata;
+  }
+
+  async setStatus(authContext: AuthContextType, lectureId: string, status: LectureMetadataStatus) {
+    let lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
+    if (!lectureMetadata) {
+      lectureMetadata = await this.lectureMetadataRepository.create(authContext, { lectureId, status });
+    } else {
+      lectureMetadata = await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $set: { status } });
+    }
+    return lectureMetadata;
   }
 
   async addNote(authContext: AuthContextType, lectureId: string) {
-    const lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
+    let lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
     if (!lectureMetadata) {
-      await this.lectureMetadataRepository.create(authContext, { lectureId, notesCount: 1 });
+      lectureMetadata = await this.lectureMetadataRepository.create(authContext, { lectureId, notesCount: 1 });
     } else {
-      await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $inc: { notesCount: 1 } });
+      lectureMetadata = await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $inc: { notesCount: 1 } });
     }
+    return lectureMetadata;
   }
 
   async removeNote(authContext: AuthContextType, lectureId: string) {
-    const lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
+    let lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
     if (lectureMetadata) {
-      await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $inc: { notesCount: -1 } });
+      lectureMetadata = await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $inc: { notesCount: -1 } });
     }
+    return lectureMetadata;
   }
 } 

@@ -16,6 +16,8 @@ import { LectureAgentInputDto } from '../lecture-agent/dto/lecture-agent-input.d
 import { LectureMetadata } from '../lecture-metadata/entities/lecture-metadata.entity';
 import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
 import { Category } from 'src/categories/entities/category.entity';
+import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
+import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
 
 
 
@@ -44,7 +46,8 @@ export class LectureCategoryResolver {
 export class LecturesResolver {
   constructor(
     private readonly lecturesService: LecturesService,
-    private readonly pubSubService: PubSubService
+    private readonly pubSubService: PubSubService,
+    private readonly lectureMetadataService: LectureMetadataService
   ) { }
 
   @ResolveField('metadata', () => LectureMetadata)
@@ -91,6 +94,26 @@ export class LecturesResolver {
   ) {
     this.lecturesService.callAgent(authContext, input);
     return true;
+  }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => LectureMetadata, { name: 'setPlaybackTimestamp' })
+  async setPlaybackTimestamp(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('timestamp', { type: () => Number }) timestamp: number,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lectureMetadataService.setPlaybackTimestamp(authContext, id, timestamp);    
+  }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => LectureMetadata, { name: 'setStatus' })
+  async setStatus(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('status', { type: () => LectureMetadataStatus }) status: LectureMetadataStatus,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lectureMetadataService.setStatus(authContext, id, status);
   }
 
   @Auth(Role.CONSUMER)
