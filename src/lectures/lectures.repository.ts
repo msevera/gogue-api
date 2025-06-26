@@ -4,7 +4,8 @@ import { Model } from 'mongoose';
 import { Lecture } from './entities/lecture.entity';
 import { CurrentAuthRepository } from '@app/common/database/current-auth.repository';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
-import { findOneOptions } from '@app/common/services/abstract.service';
+import { FindLecturesInputDto } from './dto/find-lectures.dto';
+import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 
 @Injectable()
 export class LecturesRepository extends CurrentAuthRepository<Lecture> {
@@ -26,5 +27,19 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
     });
 
     return resource;
+  }
+
+  async find(
+    authContext: AuthContextType,
+    input: FindLecturesInputDto,
+    pagination?: PaginationDto<Lecture>
+  ) {
+    const query: any = {};
+
+    if (input.creationEventName) {
+      query['creationEvent.name'] = input.creationEventName;
+    }
+    
+    return super.find(authContext, query, pagination);
   }
 } 

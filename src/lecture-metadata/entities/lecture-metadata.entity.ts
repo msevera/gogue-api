@@ -42,6 +42,14 @@ export class LectureMetadata extends WorkspaceEntity {
   @Field(() => LectureMetadataStatus)
   @Prop({ required: true, type: String, enum: LectureMetadataStatus, default: LectureMetadataStatus.NOT_STARTED })
   status?: LectureMetadataStatus;
+
+  @Field(() => Boolean)
+  @Prop({ default: false })
+  addedToLibrary?: boolean;
+
+  @Field(() => Date, { nullable: true })
+  @Prop({ default: null, required: false })
+  addedToLibraryAt?: Date;
 }
 
 export const LectureMetadataEntity = SchemaFactory.createForClass(LectureMetadata);

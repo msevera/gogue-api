@@ -18,6 +18,7 @@ import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
 import { Category } from 'src/categories/entities/category.entity';
 import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
 import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
+import { FindLecturesInputDto } from './dto/find-lectures.dto';
 
 
 
@@ -63,9 +64,13 @@ export class LecturesResolver {
   @Query(() => LecturesCursorDto, { name: 'lectures' })
   async find(
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
+    @Args('input', { nullable: true }) input: FindLecturesInputDto,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.lecturesService.find(authContext, pagination);
+    return this.lecturesService.find(authContext, {
+      ...input,
+      creationEventName: 'DONE'
+    }, pagination);
   }
 
   @Auth(Role.CONSUMER)
@@ -114,6 +119,24 @@ export class LecturesResolver {
     @AuthContext() authContext: AuthContextType
   ) {
     return this.lectureMetadataService.setStatus(authContext, id, status);
+  }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => LectureMetadata, { name: 'addToLibrary' })
+  async addToLibrary(
+    @Args('id', { type: () => ID }) id: string,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lectureMetadataService.addToLibrary(authContext, id);
+  }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => LectureMetadata, { name: 'removeFromLibrary' })
+  async removeFromLibrary(
+    @Args('id', { type: () => ID }) id: string,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lectureMetadataService.removeFromLibrary(authContext, id);
   }
 
   @Auth(Role.CONSUMER)
