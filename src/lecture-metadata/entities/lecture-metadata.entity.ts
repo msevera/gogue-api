@@ -4,6 +4,7 @@ import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import mongoose from 'mongoose';
 import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
+import { Lecture } from 'src/lectures/entities/lecture.entity';
 
 
 @CustomSchema()
@@ -30,6 +31,9 @@ export class LectureMetadata extends WorkspaceEntity {
     required: true,
   })
   lectureId: string;
+
+  @Field(() => Lecture)
+  lecture?: Lecture;
 
   @Field(() => Number)
   @Prop({ default: 0 })

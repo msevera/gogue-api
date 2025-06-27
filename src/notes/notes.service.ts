@@ -45,7 +45,7 @@ export class NotesService extends AbstractService<Note> {
   }
 
   async createOne(authContext: AuthContextType, createNoteDto: CreateNoteInputDto) {
-    const lecture = await this.lecturesService.findOne(authContext, createNoteDto.lectureId);
+    const lecture = await this.lecturesService.findOne(false, createNoteDto.lectureId);
 
     const mfa = JSON.parse(lecture.aligners.mfa);
     const mfaSentence = mfa.find(item => item.is_sentence_start && createNoteDto.timestamp >= item.sentence.start_time && createNoteDto.timestamp < item.sentence.end_time);

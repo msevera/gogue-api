@@ -64,9 +64,11 @@ export class LecturesResolver {
   @Query(() => LecturesCursorDto, { name: 'lectures' })
   async find(
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
+    @Args('input', { nullable: true }) input: FindLecturesInputDto,
     @AuthContext() authContext: AuthContextType
   ) {
     return this.lecturesService.find(authContext, {
+      ...input,
       creationEventName: 'DONE'
     }, pagination);
   }
@@ -104,7 +106,7 @@ export class LecturesResolver {
     @Args('id', { type: () => ID }) id: string,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.lecturesService.findOne(authContext, id);
+    return this.lecturesService.findOnePublic(authContext, id);
   }
 
   @Auth(Role.CONSUMER)

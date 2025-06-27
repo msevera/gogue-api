@@ -6,6 +6,7 @@ import { CurrentAuthRepository } from '@app/common/database/current-auth.reposit
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class LecturesRepository extends CurrentAuthRepository<Lecture> {
@@ -39,7 +40,11 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
     if (input.creationEventName) {
       query['creationEvent.name'] = input.creationEventName;
     }
+
+    if (input.skipUserId) {
+      query['userId'] = { $ne: new ObjectId(input.skipUserId) };
+    }
     
-    return super.find(authContext, query, pagination);
+    return super.find(false, query, pagination);
   }
 } 
