@@ -12,25 +12,27 @@ export class CategoriesRepository extends BaseRepository<Category> {
   }
 
   async findByNameEmbeddings(embeddings: number[]): Promise<Category[]> {
-    const result = await this.model.aggregate([
-      {
-        $vectorSearch: {
-          index: 'name_embeddings_cosine',
-          path: 'nameEmbeddings',
-          queryVector: embeddings,
-          numCandidates: 10,
-          limit: 10,          
-        }
-      },
-      {
-        $addFields: {
-          id: '$_id',
-          score: {
-            $meta: 'vectorSearchScore'
+    const result = await this.model.aggregate(
+      [
+        {
+          $vectorSearch: {
+            index: 'name_embeddings_cosine',
+            path: 'nameEmbeddings',
+            queryVector: embeddings,
+            numCandidates: 10,
+            limit: 10,
+          }
+        },
+        {
+          $addFields: {
+            id: '$_id',
+            score: {
+              $meta: 'vectorSearchScore'
+            }
           }
         }
-      }
-    ]);
+      ]
+    );
 
     return result;
   }

@@ -19,6 +19,7 @@ import { Category } from 'src/categories/entities/category.entity';
 import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
 import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
 import { FindLecturesInputDto } from './dto/find-lectures.dto';
+import { SearchLecturesInputDto } from './dto/search-lectures.dto';
 
 
 
@@ -71,6 +72,16 @@ export class LecturesResolver {
       ...input,
       creationEventName: 'DONE'
     }, pagination);
+  }
+
+  @Auth(Role.CONSUMER)
+  @Query(() => LecturesCursorDto, { name: 'lecturesSearch' })
+  async findSearch(
+    @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
+    @Args('input', { nullable: true }) input: SearchLecturesInputDto,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lecturesService.findSearch(authContext, input, pagination);
   }
 
   @Auth(Role.CONSUMER)

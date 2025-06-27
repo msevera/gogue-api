@@ -16,6 +16,7 @@ import { AbstractService } from '@app/common/services/abstract.service';
 import { EmbeddingsService } from '../embeddings/embeddings.service';
 import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
+import { SearchLecturesInputDto } from './dto/search-lectures.dto';
 
 @Injectable()
 export class LecturesService extends AbstractService<Lecture> {
@@ -71,6 +72,12 @@ export class LecturesService extends AbstractService<Lecture> {
 
   async find(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
     return this.lecturesRepository.find(authContext, input, pagination);
+  }
+
+  async findSearch(authContext: AuthContextType, input: SearchLecturesInputDto, pagination?: PaginationDto<Lecture>) {
+    const { query } = input;
+    const vector = await this.embeddingsService.embeddings.embedQuery(query);
+    return this.lecturesRepository.findSearch(authContext, { queryVector: vector }, pagination);
   }
 
   async findAddedToLibrary(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
