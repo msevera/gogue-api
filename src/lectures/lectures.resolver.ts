@@ -41,7 +41,7 @@ export class LectureCategoryResolver {
   ) {
     return dataLoaders.categories.findOne(item.categoryId.toString());
   }
-} 
+}
 
 @Resolver(() => Lecture)
 export class LecturesResolver {
@@ -64,13 +64,29 @@ export class LecturesResolver {
   @Query(() => LecturesCursorDto, { name: 'lectures' })
   async find(
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
-    @Args('input', { nullable: true }) input: FindLecturesInputDto,
     @AuthContext() authContext: AuthContextType
   ) {
     return this.lecturesService.find(authContext, {
-      ...input,
       creationEventName: 'DONE'
     }, pagination);
+  }
+
+  @Auth(Role.CONSUMER)
+  @Query(() => LecturesCursorDto, { name: 'lecturesAddedToLibrary' })
+  async findAddedToLibrary(
+    @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lecturesService.findAddedToLibrary(authContext, pagination);
+  }
+
+  @Auth(Role.CONSUMER)
+  @Query(() => LecturesCursorDto, { name: 'lecturesRecentlyPlayed' })
+  async findRecentlyPlayed(
+    @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lecturesService.findRecentlyPlayed(authContext, pagination);    
   }
 
   @Auth(Role.CONSUMER)
@@ -108,7 +124,7 @@ export class LecturesResolver {
     @Args('timestamp', { type: () => Number }) timestamp: number,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.lectureMetadataService.setPlaybackTimestamp(authContext, id, timestamp);    
+    return this.lectureMetadataService.setPlaybackTimestamp(authContext, id, timestamp);
   }
 
   @Auth(Role.CONSUMER)

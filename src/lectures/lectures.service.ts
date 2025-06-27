@@ -67,10 +67,15 @@ export class LecturesService extends AbstractService<Lecture> {
   }
 
   async find(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
-    if (input.addedToLibrary) {
-      return this.lectureMetadataService.findLectures(authContext, input, pagination);
-    }
     return this.lecturesRepository.find(authContext, input, pagination);
+  }
+
+  async findAddedToLibrary(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lectureMetadataService.findLecturesAddedToLibrary(authContext, pagination);
+  }
+
+  async findRecentlyPlayed(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lectureMetadataService.findLecturesRecentlyPlayed(authContext, pagination);
   }
 
   async deleteOne(authContext: AuthContextType, id: string) {

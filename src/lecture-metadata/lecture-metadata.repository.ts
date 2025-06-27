@@ -9,6 +9,7 @@ import { FindLecturesInputDto } from 'src/lectures/dto/find-lectures.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { Lecture } from 'src/lectures/entities/lecture.entity';
 import { ObjectId } from 'mongodb';
+import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
 
 @Injectable()
 export class LectureMetadataRepository extends CurrentAuthRepository<LectureMetadata> {
@@ -40,24 +41,15 @@ export class LectureMetadataRepository extends CurrentAuthRepository<LectureMeta
     return resources.items;
   }
 
-  async findLectures(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
+  async findLecturesAddedToLibrary(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
     super.checkLimit(pagination as ListOptions<LectureMetadata>);
 
-    console.log('pagination', pagination)
     const result = await this.model.aggregate([
       {
         $match: {
           addedToLibrary: true,
           userId: new ObjectId(authContext.user.id),
           workspaceId: new ObjectId(authContext.workspaceId),         
-        }
-      },
-      {
-        $lookup: {
-          from: 'lectures',
-          localField: 'lectureId',
-          foreignField: '_id',
-          as: 'lecture'
         }
       },
       {
@@ -69,8 +61,16 @@ export class LectureMetadataRepository extends CurrentAuthRepository<LectureMeta
         $skip: pagination?.next * pagination?.limit
       },
       {
-        $limit: pagination?.limit,
+        $limit: pagination?.limit + 1,
       },
+      {
+        $lookup: {
+          from: 'lectures',
+          localField: 'lectureId',
+          foreignField: '_id',
+          as: 'lecture'
+        }
+      },       
       {
         $unwind: '$lecture'
       },
@@ -87,7 +87,63 @@ export class LectureMetadataRepository extends CurrentAuthRepository<LectureMeta
     ]).exec();
 
     const hasNext = result.length > pagination?.limit;
-    return super.wrapIntoCursor(result, {
+    const items = hasNext ? result.slice(0, result.length - 1) : result;
+    return super.wrapIntoCursor(items, {
+      hasPrev: false,
+      prev: null,
+      hasNext,
+      next: hasNext ? (pagination?.next || 0) + 1 : null,
+    });
+  }
+
+  async findLecturesRecentlyPlayed(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    super.checkLimit(pagination as ListOptions<LectureMetadata>);
+
+    const result = await this.model.aggregate([
+      {
+        $match: {
+          userId: new ObjectId(authContext.user.id),
+          workspaceId: new ObjectId(authContext.workspaceId),  
+          status: LectureMetadataStatus.IN_PROGRESS       
+        }
+      },
+      {
+        $sort: {
+          lastPlaybackAt: -1
+        }
+      },
+      {
+        $skip: pagination?.next * pagination?.limit
+      },
+      {
+        $limit: pagination?.limit + 1,
+      },
+      {
+        $lookup: {
+          from: 'lectures',
+          localField: 'lectureId',
+          foreignField: '_id',
+          as: 'lecture'
+        }
+      },     
+      {
+        $unwind: '$lecture'
+      },
+      {
+        $replaceRoot: {
+          newRoot: '$lecture'
+        }
+      },
+      {
+        $addFields: {
+          id: '$_id'
+        }
+      }
+    ]).exec();
+
+    const hasNext = result.length > pagination?.limit;
+    const items = hasNext ? result.slice(0, result.length - 1) : result;
+    return super.wrapIntoCursor(items, {
       hasPrev: false,
       prev: null,
       hasNext,

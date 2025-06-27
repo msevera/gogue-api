@@ -39,6 +39,10 @@ export class LectureMetadata extends WorkspaceEntity {
   @Prop({ default: 0 })
   playbackTimestamp?: number;
 
+  @Field(() => Date, { nullable: true })
+  @Prop({ default: null, required: false })
+  lastPlaybackAt?: Date;
+
   @Field(() => LectureMetadataStatus)
   @Prop({ required: true, type: String, enum: LectureMetadataStatus, default: LectureMetadataStatus.NOT_STARTED })
   status?: LectureMetadataStatus;

@@ -16,16 +16,20 @@ export class LectureMetadataService extends AbstractService<LectureMetadata> {
     super(lectureMetadataRepository);
   }
 
-  async findLectures(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
-    return this.lectureMetadataRepository.findLectures(authContext, input, pagination);
+  async findLecturesAddedToLibrary(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lectureMetadataRepository.findLecturesAddedToLibrary(authContext, pagination);
+  }
+
+  async findLecturesRecentlyPlayed(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lectureMetadataRepository.findLecturesRecentlyPlayed(authContext, pagination);
   }
 
   async setPlaybackTimestamp(authContext: AuthContextType, lectureId: string, timestamp: number) {
     let lectureMetadata = await this.lectureMetadataRepository.findOne(authContext, { lectureId });
     if (!lectureMetadata) {
-      lectureMetadata = await this.lectureMetadataRepository.create(authContext, { lectureId, playbackTimestamp: timestamp, status: LectureMetadataStatus.IN_PROGRESS });
+      lectureMetadata = await this.lectureMetadataRepository.create(authContext, { lectureId, playbackTimestamp: timestamp, status: LectureMetadataStatus.IN_PROGRESS, lastPlaybackAt: new Date() });
     } else {
-      lectureMetadata = await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $set: { playbackTimestamp: timestamp, status: LectureMetadataStatus.IN_PROGRESS } });
+      lectureMetadata = await this.lectureMetadataRepository.updateOne(authContext, { lectureId }, { $set: { playbackTimestamp: timestamp, status: LectureMetadataStatus.IN_PROGRESS, lastPlaybackAt: new Date() } });
     }
     return lectureMetadata;
   }
