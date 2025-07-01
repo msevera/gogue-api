@@ -9,7 +9,7 @@ import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { SystemMessagePromptTemplate } from '@langchain/core/prompts';
 import { prompt as normalizePrompt } from './prompts/normalize';
 import { prompt as planPrompt } from './prompts/plan';
-import { prompt as contentPrompt } from './prompts/content';
+import { prompt as contentPrompt, promptIntro as contentIntroPrompt } from './prompts/content';
 import { prompt as overviewPrompt } from './prompts/overview';
 import { prompt as categoriesPrompt } from './prompts/categories';
 import { responseSchema as planAgentResponseSchema } from './schemas/plan-agent';
@@ -242,6 +242,8 @@ export class LectureAgentService {
       lectureId: string;
     };
 
+    const isThereNoContent = plan.every(section => !section.content);
+
     const sectionWithoutContent = plan.find(section => !section.content);
     const { title, duration } = sectionWithoutContent;
 
@@ -258,7 +260,7 @@ export class LectureAgentService {
     });
 
     const systemPrompt =
-      SystemMessagePromptTemplate.fromTemplate(contentPrompt);
+      SystemMessagePromptTemplate.fromTemplate(isThereNoContent ? contentIntroPrompt : contentPrompt);
 
     const prompt = await systemPrompt.invoke({
       SECTION_TITLE: title,

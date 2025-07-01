@@ -17,6 +17,7 @@ import { EmbeddingsService } from '../embeddings/embeddings.service';
 import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
 import { SearchLecturesInputDto } from './dto/search-lectures.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class LecturesService extends AbstractService<Lecture> {
@@ -27,6 +28,7 @@ export class LecturesService extends AbstractService<Lecture> {
     private readonly pubSubService: PubSubService,
     private readonly embeddingsService: EmbeddingsService,
     private readonly lectureMetadataService: LectureMetadataService,
+    private readonly usersService: UsersService,
     @Inject('KAFKA_PRODUCER') private client: ClientProxy
   ) {
     super(lecturesRepository);
@@ -194,8 +196,13 @@ export class LecturesService extends AbstractService<Lecture> {
       },
     });
 
+    const user = await this.usersService.findOne(null, lecture.userId, { throwErrorIfNotFound: false });
+    const authContext = {
+      user,
+      workspaceId: lecture.workspaceId
+    };
 
-    await this.lectureMetadataService.addToLibrary(false, lecture.id);
+    await this.lectureMetadataService.addToLibrary(authContext, lecture.id);
 
     await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
   }

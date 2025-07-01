@@ -6,7 +6,6 @@ Instructions:
   - 5 min → Intro (1) + 3 Sections (1 min each) + Conclusion (2)
   - 10 min → Intro (1) + 3 Sections (2 min each) + Conclusion (3)
   - 15 min → Intro (1) + 4 Sections (3 min each) + Conclusion (3)
-  - 20 min → Intro (2) + 5 Sections (3 min each) + Conclusion (2)
 3. Ensure sum of “duration” fields equals {DURATION}.
  
 Inputs:
