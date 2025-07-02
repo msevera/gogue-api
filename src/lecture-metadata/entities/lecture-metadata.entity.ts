@@ -1,0 +1,63 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { CustomSchema } from '@app/common/database/custom-schema.decorator';
+import mongoose from 'mongoose';
+import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
+import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
+import { Lecture } from 'src/lectures/entities/lecture.entity';
+
+
+@CustomSchema()
+@ObjectType()
+export class LectureMetadata extends WorkspaceEntity {  
+  @Field(() => ID)
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    get: (value: mongoose.Schema.Types.ObjectId) => {
+      return value.toString();
+    },
+    required: true,
+  })
+  userId: string;
+
+  @Field(() => ID)
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lecture',
+    get: (value: mongoose.Schema.Types.ObjectId) => {
+      return value.toString();
+    },
+    required: true,
+  })
+  lectureId: string;
+
+  @Field(() => Lecture)
+  lecture?: Lecture;
+
+  @Field(() => Number)
+  @Prop({ default: 0 })
+  notesCount?: number;  
+
+  @Field(() => Number)
+  @Prop({ default: 0 })
+  playbackTimestamp?: number;
+
+  @Field(() => Date, { nullable: true })
+  @Prop({ default: null, required: false })
+  lastPlaybackAt?: Date;
+
+  @Field(() => LectureMetadataStatus)
+  @Prop({ required: true, type: String, enum: LectureMetadataStatus, default: LectureMetadataStatus.NOT_STARTED })
+  status?: LectureMetadataStatus;
+
+  @Field(() => Boolean)
+  @Prop({ default: false })
+  addedToLibrary?: boolean;
+
+  @Field(() => Date, { nullable: true })
+  @Prop({ default: null, required: false })
+  addedToLibraryAt?: Date;
+}
+
+export const LectureMetadataEntity = SchemaFactory.createForClass(LectureMetadata);

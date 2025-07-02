@@ -63,16 +63,16 @@ export const defineBeforeEach = async ({ imports, providers }) => {
 afterEach(async () => {
  // await cache.flushAll();
 
-  const connection = mod.get(getConnectionToken()) as Connection;
-  for (const modelName in connection.models) {
-    const model = connection.models[modelName];
-    await model.deleteMany({}); // This removes all documents from the model's collection
-  }
+  // const connection = mod.get(getConnectionToken()) as Connection;
+  // for (const modelName in connection.models) {
+  //   const model = connection.models[modelName];
+  //   await model.deleteMany({}); // This removes all documents from the model's collection
+  // }
 });
 
 afterAll(async () => {
   await cache.quit();
   const connection = mod.get(getConnectionToken()) as Connection;
-  await connection.db.dropDatabase();
+  // await connection.db.dropDatabase();
   await connection.destroy(true);
 });

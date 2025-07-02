@@ -2,7 +2,7 @@ import { Prop } from '@nestjs/mongoose';
 import { CacheEntity } from './cache-entity.type';
 import mongoose from 'mongoose';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Workspace } from 'src/workspaces/enitities/workspace.entity';
+import { Workspace } from '../../../../src/workspaces/enitities/workspace.entity';
 
 @ObjectType({ isAbstract: true })
 export class WorkspaceEntity extends CacheEntity {

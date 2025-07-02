@@ -1,0 +1,67 @@
+kraft:
+  enabled: true
+
+zookeeper:
+  enabled: false
+
+auth:
+  enabled: false
+
+replicaCount: 1  # one broker pod only
+controller:
+  replicaCount: 1  # one controller, colocated with broker
+  persistence:
+    enabled: true
+    storageClass: "ssd"
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+broker:
+  replicaCount: 1
+  persistence:
+    enabled: true
+    storageClass: "ssd"
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+defaultInitContainers:
+  prepareConfig:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+service:
+  type: ClusterIP
+externalAccess:
+  enabled: false
+
+
+listeners:
+  client:
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  interbroker:
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  external:
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  controller:
+    protocol: PLAINTEXT
+    sslClientAuth: ""

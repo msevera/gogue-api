@@ -27,11 +27,13 @@ import { LectureAgentModule } from './lecture-agent/lecture-agent.module';
 import { LecturesModule } from './lectures/lectures.module';
 import { NotesModule } from './notes/notes.module';
 import { NoteAgentModule } from './note-agent/note-agent.module';
+import { NoteMessagesModule } from './note-messages/note-messages.module';
+import { CategoriesModule } from './categories/categories.module';
 
 ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
 
 @Module({
-  imports: [
+  imports: [   
     UsersModule,
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -124,7 +126,9 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
     LectureAgentModule,
     LecturesModule,
     NotesModule,
-    NoteAgentModule
+    NoteAgentModule,
+    NoteMessagesModule,
+    CategoriesModule
   ],
   controllers: [AppController],
   providers: [AppService],

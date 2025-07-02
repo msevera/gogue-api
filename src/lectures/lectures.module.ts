@@ -3,19 +3,29 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Lecture, LectureEntity } from './entities/lecture.entity';
 import { LecturesService } from './lectures.service';
 import { LecturesRepository } from './lectures.repository';
-import { LectureSectionResolver, LecturesResolver } from './lectures.resolver';
-import { UsersModule } from 'src/users/users.module';
-import { PubSubModule } from 'src/pubsub/pubsub.module';
-import { LectureAgentModule } from 'src/lecture-agent/lecture-agent.module';
+import { LectureCategoryResolver, LectureSectionResolver, LecturesResolver } from './lectures.resolver';
+import { UsersModule } from '../users/users.module';
+import { PubSubModule } from '../pubsub/pubsub.module';
+import { LectureAgentModule } from '../lecture-agent/lecture-agent.module';
+import { KafkaModule } from '../kafka/kafka.module';
+import { LectureTTSController } from './lectures.controller';
+import { EmbeddingsModule } from '../embeddings/embeddings.module';
+import { CategoriesModule } from '../categories/categories.module';
+import { LectureMetadataModule } from 'src/lecture-metadata/lecture-metadata.module';
 
 @Module({
   imports: [
     forwardRef(() => LectureAgentModule),
     PubSubModule,
     MongooseModule.forFeature([{ name: Lecture.name, schema: LectureEntity }]),
-    UsersModule,    
+    UsersModule,
+    KafkaModule,   
+    EmbeddingsModule,
+    CategoriesModule,
+    LectureMetadataModule
   ],
-  providers: [LecturesResolver, LectureSectionResolver, LecturesService, LecturesRepository],
+  controllers: [LectureTTSController],
+  providers: [LecturesResolver, LectureSectionResolver, LectureCategoryResolver, LecturesService, LecturesRepository],
   exports: [MongooseModule, LecturesService, LecturesRepository]
 })
 export class LecturesModule {} 

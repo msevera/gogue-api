@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 class UpdateLectureCreationEventMessageDto {  
   title?: string;
@@ -17,6 +17,28 @@ class UpdateLectureCreationEventDto {
   message?: UpdateLectureCreationEventMessageDto;
 }
 
+class UpdateLectureContentAnnotationDto {
+  @IsNumber()
+  @IsNotEmpty()
+  startIndex: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  endIndex: number;
+
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  type: string;
+
+  @IsString()
+  @IsNotEmpty()
+  url: string;
+}
+
 export class UpdateLectureSectionDto {  
   @IsString()
   @IsNotEmpty()
@@ -25,12 +47,30 @@ export class UpdateLectureSectionDto {
   @IsString()
   @IsNotEmpty()
   content: string;
+
+  @IsString()
+  @IsOptional()
+  overview?: string;
+
+  @IsArray()
+  @IsOptional()
+  annotations?: UpdateLectureContentAnnotationDto[];
+}
+
+class UpdateLectureCategoryDto {
+  @IsString()
+  @IsNotEmpty()
+  categoryId: string;
 }
 
 export class UpdateLectureDto {
   @IsString()
   @IsNotEmpty()
   topic?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  overview?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -46,4 +86,6 @@ export class UpdateLectureDto {
   
   @IsNotEmpty()
   creationEvent: UpdateLectureCreationEventDto;
+
+  categories?: UpdateLectureCategoryDto[];
 } 

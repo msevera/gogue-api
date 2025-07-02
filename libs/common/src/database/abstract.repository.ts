@@ -6,7 +6,7 @@ import {
   SessionOptions,
 } from '@app/common/database/options';
 import { BadRequestException, Inject } from '@nestjs/common';
-import { ListResult } from '@app/common/database/pagination';
+import { ListResult, PageInfo } from '@app/common/database/pagination';
 import { CacheService } from '../../../../src/cache/cache.service';
 import { CACHE } from '../constants/cache.constants';
 import { AuthContextType } from '../decorators/auth-context.decorator';
@@ -124,6 +124,22 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     return JSON.stringify(sortedObj);
   }
 
+  protected checkLimit(options: ListOptions<TDocument>) {
+    if (options.limit > options.maxLimit) {
+      throw new BadRequestException(
+        `Limit should not exceed ${options.maxLimit} items`,
+      );
+    }
+
+    if (!options.limit) {
+      options.limit = 30;
+    }
+
+    if (!options.next) {
+      options.next = 0;
+    }
+  }
+
   protected async findWithFilter(
     authContext: AuthContextType | false,
     query: FilterQuery<TDocument>,
@@ -134,11 +150,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
       lean: true,
     },
   ): Promise<ListResult<TDocument>> {
-    if (options.limit > options.maxLimit) {
-      throw new BadRequestException(
-        `Limit should not exceed ${options.maxLimit} items`,
-      );
-    }
+    this.checkLimit(options);
 
     const cleanQuery = this.cleanQuery(query);
     const queryWithAuth = this.addCurrentAuthToQuery(authContext, cleanQuery);
@@ -171,14 +183,19 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     const hasNext = result.length > options.limit;
     const items = hasNext ? result.slice(0, result.length - 1) : result;
 
+
+    return this.wrapIntoCursor(items, {
+      hasPrev: false,
+      prev: null,
+      hasNext,
+      next: hasNext ? (options.next || 0) + 1 : null,
+    });
+  }
+
+  protected wrapIntoCursor(items: TDocument[], pageInfo: PageInfo) {
     return {
       items,
-      pageInfo: {
-        hasPrev: false,
-        prev: null,
-        hasNext,
-        next: hasNext ? (options.next || 0) + 1 : null,
-      },
+      pageInfo,
     };
   }
 
@@ -220,7 +237,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
   async create(
     authContext: AuthContextType | false,
-    document: Omit<TDocument, 'id'> & Partial<Pick<TDocument, 'userId' | 'workspaceId'>>,
+    document: Omit<TDocument, 'id'>, //& Partial<Pick<TDocument, 'userId' | 'workspaceId'>>,
     options: SessionOptions = {},
   ): Promise<TDocument> {
     const documentWithAuth = this.addCurrentAuthToQuery(authContext, document, true);
@@ -360,5 +377,17 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     await this.clearResourceFromCache(resource);
 
     return resource;
+  }
+
+  async deleteMany(
+    authContext: AuthContextType | false,
+    filter: Partial<TDocument>,
+    options: LeanOptions & SessionOptions = { lean: true },
+  ): Promise<boolean> {
+    const filterQuery = this.buildFilterQuery(filter);
+    const cleanQuery = this.cleanQuery(filterQuery);
+    const query = this.addCurrentAuthToQuery(authContext, cleanQuery);
+    await this.model.deleteMany(query).session(options.session);    
+    return true;
   }
 }

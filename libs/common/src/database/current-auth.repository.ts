@@ -4,6 +4,7 @@ import { Injectable, Scope } from '@nestjs/common';
 import { Model } from "mongoose";
 import { BaseRepository } from './base.repository';
 import { AuthContextType } from '../decorators/auth-context.decorator';
+import { SessionOptions } from './options';
 
 @Injectable()
 export class CurrentAuthRepository<TDocument extends AbstractDocument> extends BaseRepository<TDocument> {
@@ -31,5 +32,14 @@ export class CurrentAuthRepository<TDocument extends AbstractDocument> extends B
     }
 
     return updatedQuery;
+  }
+
+  // @ts-ignore
+  async create(
+    authContext: AuthContextType | false,
+    document: Omit<TDocument, 'id' | 'userId' | 'workspaceId'>,
+    options: SessionOptions = {},
+  ): Promise<TDocument> {
+   return super.create(authContext, document as any, options);
   }
 }

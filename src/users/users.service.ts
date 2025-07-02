@@ -3,7 +3,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { FirebaseService } from '../firebase/firebase.service';
 import { UsersRepository } from './users.repository';
 import { SetProfileDto } from './dto/set-profile.dto';
-import { WorkspacesService } from 'src/workspaces/workspaces.service';
+import { WorkspacesService } from '../workspaces/workspaces.service';
 import mongoose from 'mongoose';
 import { AbstractService, findOneOptions } from '@app/common/services/abstract.service';
 import { User } from './entities/user.entity';

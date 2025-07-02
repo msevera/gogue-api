@@ -4,20 +4,35 @@ import { Lecture } from './entities/lecture.entity';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
-import { LectureAgentInputDto } from 'src/lecture-agent/dto/lecture-agent-input.dto';
-import { LectureAgentService } from 'src/lecture-agent/lecture-agent.service';
-import { PubSubService } from 'src/pubsub/pubsub.service';
+import { LectureAgentInputDto } from '../lecture-agent/dto/lecture-agent-input.dto';
+import { LectureAgentService } from '../lecture-agent/lecture-agent.service';
+import { PubSubService } from '../pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
+import { ClientProxy } from '@nestjs/microservices';
+import { LectureTTSCompletedServiceDto } from './dto/lecture-tts-completed.service.dto';
+import { LectureCreatedServiceDto } from './dto/lecture-created.service.dto';
+import { AbstractService } from '@app/common/services/abstract.service';
+import { EmbeddingsService } from '../embeddings/embeddings.service';
+import { FindLecturesInputDto } from './dto/find-lectures.dto';
+import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
+import { SearchLecturesInputDto } from './dto/search-lectures.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
-export class LecturesService {
+export class LecturesService extends AbstractService<Lecture> {
   constructor(
     private readonly lecturesRepository: LecturesRepository,
     @Inject(forwardRef(() => LectureAgentService))
     private readonly lectureAgentService: LectureAgentService,
-    private readonly pubSubService: PubSubService
-  ) { }
+    private readonly pubSubService: PubSubService,
+    private readonly embeddingsService: EmbeddingsService,
+    private readonly lectureMetadataService: LectureMetadataService,
+    private readonly usersService: UsersService,
+    @Inject('KAFKA_PRODUCER') private client: ClientProxy
+  ) {
+    super(lecturesRepository);
+  }
 
   async createOne(authContext: AuthContextType, input: CreateLectureDto) {
     return this.lecturesRepository.create(authContext, {
@@ -27,29 +42,52 @@ export class LecturesService {
       title: input.title,
       emoji: input.emoji,
       sections: input.sections,
-      userId: authContext.user.id,
-      workspaceId: authContext.workspaceId
     });
   }
 
   async updateOne(authContext: AuthContextType, id: string, updateLectureDto: UpdateLectureDto) {
+    const update: any = {
+      ...updateLectureDto,
+    }
+
+    if (updateLectureDto.topic) {
+      update.topicEmbeddings = await this.embeddingsService.embeddings.embedQuery(updateLectureDto.topic)
+    }
+
     return this.lecturesRepository.updateOne(authContext, { id }, {
-      $set: updateLectureDto
+      $set: {
+        ...update,
+      }
     });
   }
 
-  async setCheckpoint(authContext: AuthContextType, id: string, checkpoint: string) {
-    return this.lecturesRepository.updateOne(authContext, { id }, {
-      checkpoint
-    });
+  async findOnePublic(authContext: AuthContextType, id: string) {
+    return this.lecturesRepository.findOne(false, { id });
   }
 
-  async find(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
-    return this.lecturesRepository.find(authContext, {}, pagination);
+  async findOnePending(
+    authContext: AuthContextType | false,
+  ) {
+    const resource = await this.lecturesRepository.findOnePending(authContext);
+    return resource;
   }
 
-  async findOne(authContext: AuthContextType, id: string) {
-    return this.lecturesRepository.findOne(authContext, { id });
+  async find(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
+    return this.lecturesRepository.find(authContext, input, pagination);
+  }
+
+  async findSearch(authContext: AuthContextType, input: SearchLecturesInputDto, pagination?: PaginationDto<Lecture>) {
+    const { query } = input;
+    const vector = await this.embeddingsService.embeddings.embedQuery(query);
+    return this.lecturesRepository.findSearch(authContext, { queryVector: vector }, pagination);
+  }
+
+  async findAddedToLibrary(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lectureMetadataService.findLecturesAddedToLibrary(authContext, pagination);
+  }
+
+  async findRecentlyPlayed(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lectureMetadataService.findLecturesRecentlyPlayed(authContext, pagination);
   }
 
   async deleteOne(authContext: AuthContextType, id: string) {
@@ -70,11 +108,9 @@ export class LecturesService {
       creationEvent: {
         name: 'INIT'
       },
-      userId: authContext.user.id,
-      workspaceId: authContext.workspaceId,
     });
 
-    try {     
+    try {
       await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
       const eventStream = await this.lectureAgentService.graph.streamEvents(
         {
@@ -99,12 +135,27 @@ export class LecturesService {
         try {
           const isCustomEvent = event === 'on_custom_event';
           if (isCustomEvent) {
-            let eventName: string;            
+            let eventName: string;
             let dataChunk: any = {};
             eventName = name;
             dataChunk = data.chunk;
             lecture = await this.lecturesRepository.findOne(authContext, { id: lecture.id });
             await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
+            if (eventName === 'FINALIZING') {
+              await this.client.emit<any, LectureCreatedServiceDto>('lecture.created', {
+                id: lecture.id,
+                topic: lecture.topic,
+                title: lecture.title,
+                emoji: lecture.emoji,
+                userId: lecture.userId,
+                workspaceId: lecture.workspaceId,
+                sections: lecture.sections.map(section => ({
+                  title: section.title,
+                  content: section.content,
+                  annotations: section.annotations
+                }))
+              });
+            }
           }
         } catch (error) {
           console.log('error', error)
@@ -115,5 +166,44 @@ export class LecturesService {
       lecture = await this.lecturesRepository.findOne(authContext, { id: lecture.id });
       await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
     }
+  }
+
+  async generateAudio(authContext: AuthContextType, id: string) {
+    const lecture = await this.lecturesRepository.findOne(false, { id });
+    await this.client.emit<any, LectureCreatedServiceDto>('lecture.created', {
+      id: lecture.id,
+      topic: lecture.topic,
+      title: lecture.title,
+      emoji: lecture.emoji,
+      userId: lecture.userId,
+      workspaceId: lecture.workspaceId,
+      sections: lecture.sections.map(section => ({
+        title: section.title,
+        content: section.content,
+        annotations: section.annotations
+      }))
+    });
+  }
+
+  async handleTTSCompleted(lectureTTSCompleted: LectureTTSCompletedServiceDto) {
+    const { id, audio, aligners, image } = lectureTTSCompleted;
+    const lecture = await this.lecturesRepository.updateOne(false, { id }, {
+      audio,
+      aligners,
+      image,
+      creationEvent: {
+        name: 'DONE'
+      },
+    });
+
+    const user = await this.usersService.findOne(null, lecture.userId, { throwErrorIfNotFound: false });
+    const authContext = {
+      user,
+      workspaceId: lecture.workspaceId
+    };
+
+    await this.lectureMetadataService.addToLibrary(authContext, lecture.id);
+
+    await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
   }
 } 

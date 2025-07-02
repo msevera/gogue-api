@@ -7,12 +7,14 @@ import { NotesCursorDto } from './dto/notes-cursor.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { NotesService } from './notes.service';
 import { Note } from './entities/note.entity';
-import { User } from 'src/users/entities/user.entity';
-import { Lecture } from 'src/lectures/entities/lecture.entity';
-import { DataLoaderRegistry } from 'src/data-loader/data-loader.registry';
-import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
+import { Lecture } from '../lectures/entities/lecture.entity';
+import { DataLoaderRegistry } from '../data-loader/data-loader.registry';
+import { PubSubService } from '../pubsub/pubsub.service';
+import { CreateNoteInputDto } from './dto/create-note.dto';
+import { FindNotesInputDto } from './dto/find-notes.dto';
 import { NoteCreatedTopic } from './topics/note-created.topic';
-import { PubSubService } from 'src/pubsub/pubsub.service';
+import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
+
 @Resolver(() => Note)
 export class NotesResolver {
   constructor(private readonly notesService: NotesService, private readonly pubSubService: PubSubService) { }
@@ -28,10 +30,11 @@ export class NotesResolver {
   @Auth(Role.CONSUMER)
   @Query(() => NotesCursorDto, { name: 'notes' })
   async find(
+    @Args('input') input: FindNotesInputDto,
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Note>,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.notesService.find(authContext, pagination);
+    return this.notesService.find(authContext, input, pagination);
   }
 
   @Auth(Role.CONSUMER)
@@ -44,19 +47,30 @@ export class NotesResolver {
   }
 
   @Auth(Role.CONSUMER)
-  @Mutation(() => Boolean, { name: 'deleteNote' })
+  @Mutation(() => Note, { name: 'deleteNote' })
   async deleteOne(
     @Args('id', { type: () => ID }) id: string,
     @AuthContext() authContext: AuthContextType
   ) {
-    await this.notesService.deleteOne(authContext, id);
-    return true;
+    return this.notesService.deleteOne(authContext, id);
+  }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => Note, { name: 'createNote' })
+  async createOne(
+    @Args('input') input: CreateNoteInputDto,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return await this.notesService.createOne(authContext, input);    
   }
 
   @CustomSubscription<NotesResolver, Note>(
-    NoteCreatedTopic
+    NoteCreatedTopic,
+    (resolver: NotesResolver, payload: Note, variables: any) => {
+      return payload.lectureId === variables.lectureId;
+    }
   )
-  noteCreated() {
+  noteCreated(@Args('lectureId', { type: () => ID }) lectureId: string) {
     return this.pubSubService.subscribe(NoteCreatedTopic);
   }
 } 

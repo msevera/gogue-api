@@ -128,4 +128,5 @@ node_modules/
 # dataconnect generated files
 .dataconnect
 firebase-emulator
-firebase-export
+firebase-export*
+scratch*
