@@ -9,7 +9,7 @@ export class LectureTTSController {
 
   @MessagePattern('lecture.tts.completed')
   async handleTTSCompleted(@Ctx() context: KafkaContext, @Payload() data: LectureTTSCompletedServiceDto) {
-    console.log('Received TTS Completed:', data);
+    console.log('Received TTS Completed:', data.id);
     const consumer = context.getConsumer();
     const topic = context.getTopic();
     const message = context.getMessage();

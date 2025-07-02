@@ -9,7 +9,7 @@ export class NoteMessagesController {
 
   @MessagePattern('note.message.created')
   async handleNoteMessageCreated(@Ctx() context: KafkaContext, @Payload() data: NoteMessageCreatedServiceDto) {
-    console.log('Received Note Message Created:', data);
+    console.log('Received Note Message Created:', data.noteId);
     const consumer = context.getConsumer();
     const topic = context.getTopic();
     const message = context.getMessage();
