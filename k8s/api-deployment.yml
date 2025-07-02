@@ -100,3 +100,19 @@ spec:
                 secretKeyRef:
                   name: api-api-endpoint
                   key: API_API_ENDPOINT
+            - name: KAFKA_BROKER
+              valueFrom:
+                secretKeyRef:
+                  name: api-kafka-broker
+                  key: API_KAFKA_BROKER
+            - name: KAFKA_PROCESSING_GROUP
+              valueFrom:
+                secretKeyRef:
+                  name: api-kafka-processing-group
+                  key: API_KAFKA_PROCESSING_GROUP
+            - name: KAFKAJS_NO_PARTITIONER_WARNING
+              valueFrom:
+                secretKeyRef:
+                  name: api-kafkajs-no-partitioner-warning
+                  key: API_KAFKAJS_NO_PARTITIONER_WARNING
+
