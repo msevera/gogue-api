@@ -33,8 +33,7 @@ async function bootstrap() {
       }
     }
   });
-
-  // Increase payload size limit to 50MB
+  
   app.use(json({ limit: '50mb' }));
 
   app.useGlobalPipes(new ValidationPipe());
