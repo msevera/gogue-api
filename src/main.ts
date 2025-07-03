@@ -19,6 +19,11 @@ async function bootstrap() {
       client: {
         brokers: [configService.get<string>('KAFKA_BROKER')],
         logLevel: 4,
+        sasl: {
+          mechanism: 'plain',
+          username: configService.get<string>('KAFKA_USERNAME'),
+          password: configService.get<string>('KAFKA_PASSWORD'),
+        },
       },
       consumer: {
         groupId: configService.get<string>('KAFKA_PROCESSING_GROUP'),

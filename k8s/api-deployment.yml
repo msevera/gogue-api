@@ -105,6 +105,16 @@ spec:
                 secretKeyRef:
                   name: api-kafka-broker
                   key: API_KAFKA_BROKER
+            - name: KAFKA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: api-kafka-username
+                  key: API_KAFKA_USERNAME
+            - name: KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-kafka-password
+                  key: API_KAFKA_PASSWORD
             - name: KAFKA_PROCESSING_GROUP
               valueFrom:
                 secretKeyRef:

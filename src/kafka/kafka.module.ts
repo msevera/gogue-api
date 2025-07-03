@@ -14,6 +14,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           options: {
             client: {
               brokers: [configService.get<string>('KAFKA_BROKER')],
+              sasl: {
+                mechanism: 'plain',
+                username: configService.get<string>('KAFKA_USERNAME'),
+                password: configService.get<string>('KAFKA_PASSWORD'),
+              },
             },
           },
         }),
