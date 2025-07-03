@@ -13,9 +13,25 @@ spec:
       labels:
         component: kafka
     spec:
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: remove-lostfound
+          image: busybox
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "32Mi"
+          command: ["sh", "-c", "rm -rf /var/lib/kafka/data/lost+found"]
+          volumeMounts:
+            - name: kafka-storage
+              mountPath: /var/lib/kafka/data
       containers:
         - name: kafka
-          image: apache/kafka:latest
+          image: apache/kafka:latest          
           resources:
             requests:
               memory: "512Mi"
