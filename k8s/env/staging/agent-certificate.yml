@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: agent-learnbud-ai-tls
+spec:
+  secretName: agent-learnbud-ai-tls
+  issuerRef:
+    name: letsencrypt-learnbud
+    kind: ClusterIssuer
+  commonName: 'staging.agent.learnbud.ai'
+  dnsNames:
+    - staging.agent.learnbud.ai
+    - www.staging.agent.learnbud.ai

@@ -29,9 +29,6 @@ kubectl apply -f k8s/api-deployment.yml -n=${PROJECT}
 kubectl apply -f k8s/redis-ssd-persistent-volume.yml -n=${PROJECT}
 kubectl apply -f k8s/redis-statefulset.yml -n=${PROJECT}
 kubectl apply -f k8s/redis-cluster-ip-service.yml -n=${PROJECT}
-# kubectl apply -f k8s/kafka-ssd-persistent-volume.yml -n=${PROJECT}
-# kubectl apply -f k8s/kafka-statefulset.yml -n=${PROJECT}
-# kubectl apply -f k8s/kafka-cluster-ip-service.yml -n=${PROJECT}
 
 kubectl set image deployments/api-deployment api=us-docker.pkg.dev/learnbud-d317a/docker/lb-api:${PROJECT}-${ENV}-${SHA} -n=${PROJECT}
 kubectl exec statefulset/redis-statefulset -n=${PROJECT} -- sh -c "redis-cli --scan | grep -v ens: | xargs redis-cli del"
