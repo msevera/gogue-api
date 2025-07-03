@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: kafka-ssd-persistent-volume-claim
 spec:
-  storageClassName: ssd
+#  storageClassName: ssd
   accessModes:
     - ReadWriteOnce
   resources:

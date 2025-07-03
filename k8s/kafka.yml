@@ -1,0 +1,14 @@
+kraft:
+  enabled: true
+
+zookeeper:
+  enabled: false
+
+controller:  
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
