@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-gogue-ai-tls
+spec:
+  secretName: api-gogue-ai-tls
+  issuerRef:
+    name: letsencrypt-gogue
+    kind: ClusterIssuer
+  commonName: 'api.gogue.ai'
+  dnsNames:
+    - api.gogue.ai
+    - www.api.gogue.ai

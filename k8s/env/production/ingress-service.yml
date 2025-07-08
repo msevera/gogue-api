@@ -1,27 +1,27 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: staging-api-ingress-service
+  name: api-ingress-service
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 100m
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    cert-manager.io/cluster-issuer: 'letsencrypt-learnbud'
+    cert-manager.io/cluster-issuer: 'letsencrypt-gogue'
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
     nginx.ingress.kubernetes.io/from-to-www-redirect: 'true'
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - staging.api.learnbud.ai
-        - www.staging.api.learnbud.ai
-      secretName: api-learnbud-ai-tls
+        - api.gogue.ai
+        - www.api.gogue.ai
+      secretName: api-gogue-ai-tls
     - hosts:
-        - staging.agent.learnbud.ai
-        - www.staging.agent.learnbud.ai
-      secretName: agent-learnbud-ai-tls
+        - agent.gogue.ai
+        - www.agent.gogue.ai
+      secretName: agent-gogue-ai-tls
   rules:
-    - host: staging.api.learnbud.ai
+    - host: api.gogue.ai
       http:
         paths:
           - path: /?(.*)
@@ -31,7 +31,7 @@ spec:
                 name: api-cluster-ip-service
                 port:
                   number: 3000
-    - host: www.staging.api.learnbud.ai
+    - host: www.api.gogue.ai
       http:
         paths:
           - path: /?(.*)
@@ -41,7 +41,7 @@ spec:
                 name: api-cluster-ip-service
                 port:
                   number: 3000
-    - host: staging.agent.learnbud.ai
+    - host: agent.gogue.ai
       http:
         paths:
           - path: /?(.*)
@@ -51,7 +51,7 @@ spec:
                 name: agent-cluster-ip-service
                 port:
                   number: 8000
-    - host: www.staging.agent.learnbud.ai
+    - host: www.agent.gogue.ai
       http:
         paths:
           - path: /?(.*)
