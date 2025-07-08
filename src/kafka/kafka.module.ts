@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SASLOptions } from 'kafkajs';
 
 @Module({
   imports: [
@@ -9,22 +10,28 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         name: 'KAFKA_PRODUCER',
         imports: [ConfigModule],
         inject: [ConfigService],
-        useFactory: async (configService: ConfigService) => ({
-          transport: Transport.KAFKA,
-          options: {
-            client: {
-              brokers: [configService.get<string>('KAFKA_BROKER')],
-              sasl: {
-                mechanism: 'plain',
-                username: configService.get<string>('KAFKA_USERNAME'),
-                password: configService.get<string>('KAFKA_PASSWORD'),
+        useFactory: async (configService: ConfigService) => {
+          const kafkaUserName = configService.get<string>('KAFKA_USERNAME');
+          const kafkaPassword = configService.get<string>('KAFKA_PASSWORD');
+          const sasl = kafkaUserName && kafkaPassword ? {
+            mechanism: 'plain',
+            username: kafkaUserName,
+            password: kafkaPassword,
+          } : undefined;
+
+          return ({
+            transport: Transport.KAFKA,
+            options: {
+              client: {
+                brokers: [configService.get<string>('KAFKA_BROKER')],
+                sasl: sasl as SASLOptions,
               },
             },
-          },
-        }),
+          })
+        },
       },
     ]),
   ],
   exports: [ClientsModule],
 })
-export class KafkaModule {}
+export class KafkaModule { }
