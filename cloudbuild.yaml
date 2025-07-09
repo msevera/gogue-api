@@ -9,7 +9,7 @@ steps:
       - '-c'
       - |
         gcloud secrets versions access latest \
-          --secret=lb-api-env-$_ENVIRONMENT \
+          --secret=gg-api-env-$_ENVIRONMENT \
           --format='get(payload.data)' | base64 --decode > .env
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
@@ -17,7 +17,7 @@ steps:
       - '-c'
       - |
         chmod +x ./deploy/deploy.sh
-        ./deploy/deploy.sh lb $_ENVIRONMENT $_ENVIRONMENT $COMMIT_SHA
+        ./deploy/deploy.sh gg $_ENVIRONMENT $_ENVIRONMENT $COMMIT_SHA
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-east4'
       - 'GCLOUD_PROJECT=gogue-465312'
