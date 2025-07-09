@@ -20,7 +20,8 @@ export const responseSchema = {
             "type": "object",
             "required": [
               "title",
-              "duration"
+              "duration",
+              "overview"
             ],
             "properties": {
               "title": {
@@ -30,6 +31,10 @@ export const responseSchema = {
               "duration": {
                 "type": "number",
                 "description": "Duration in minutes"
+              },
+              "overview": {
+                "type": "string",
+                "description": "Brief overview of the section. Make with ing endings"
               }
             },
             "additionalProperties": false

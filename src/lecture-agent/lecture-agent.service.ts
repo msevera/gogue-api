@@ -34,6 +34,7 @@ class PlanSection {
   duration: number;
   content: string;
   annotations: ContentAnnotation[];
+  overview: string;
 }
 
 class Category {
@@ -71,7 +72,7 @@ export class LectureAgentService {
   ) {
 
     const modelSettings = {
-      model: 'gpt-4o',
+      model: 'gpt-4.1',
       temperature: 0,
     }
 
@@ -245,7 +246,7 @@ export class LectureAgentService {
     const isThereNoContent = plan.every(section => !section.content);
 
     const sectionWithoutContent = plan.find(section => !section.content);
-    const { title, duration } = sectionWithoutContent;
+    const { title, overview, duration } = sectionWithoutContent;
 
     const generatingContentEvent = 'GENERATING_CONTENT';
     await this.lecturesService.updateOne(authContext, lectureId, {
@@ -263,7 +264,7 @@ export class LectureAgentService {
       SystemMessagePromptTemplate.fromTemplate(isThereNoContent ? contentIntroPrompt : contentPrompt);
 
     const prompt = await systemPrompt.invoke({
-      SECTION_TITLE: title,
+      SECTION_OVERVIEW: overview,
       SECTION_DURATION: duration.toString(),
       PREVIOUS_SECTIONS: JSON.stringify(plan),
       WORDS_COUNT: duration * wordsPerMinute,
@@ -333,9 +334,9 @@ export class LectureAgentService {
 
     const result = await this.overviewModel.invoke([...prompt]);
     const parsed = JSON.parse(result.content as string);
-    const { lecture_overview, sections } = parsed;
+    const { lecture_overview } = parsed;
 
-    return { overview: lecture_overview, sectionsOverview: sections.map(section => section.section_overview) };
+    return { overview: lecture_overview };
   }
 
   private categoriesNode = async (
@@ -391,7 +392,7 @@ export class LectureAgentService {
     config?: RunnableConfig,
   ) => {
     try {
-      const { overview, sectionsOverview, plan, categories } = state;
+      const { overview, plan, categories } = state;
       const { authContext, lectureId } = config.configurable as {
         authContext: AuthContextType;
         lectureId: string;
@@ -415,10 +416,6 @@ export class LectureAgentService {
           .map(category => ({
             categoryId: category.id
           })),
-        sections: plan.map((section, index) => ({
-          ...section,
-          overview: sectionsOverview[index]
-        })),
         creationEvent: {
           name: finalizingEvent,
         }
