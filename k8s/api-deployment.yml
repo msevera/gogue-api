@@ -7,12 +7,12 @@ spec:
   selector:
     matchLabels:
       component: api
-  serviceAccountName: ksa-api
   template:
     metadata:
       labels:
         component: api
     spec:   
+      serviceAccountName: ksa-api
       containers:
         - name: api
           image: gg-api
