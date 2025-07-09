@@ -13,6 +13,8 @@ spec:
       labels:
         component: redis
     spec:
+      securityContext:
+        fsGroup: 1001
       volumes:
         - name: redis-storage
           persistentVolumeClaim:
@@ -20,6 +22,9 @@ spec:
       containers:
         - name: redis
           image: redis
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
           resources:
             requests:
               memory: "512Mi"
