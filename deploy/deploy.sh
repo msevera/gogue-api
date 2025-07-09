@@ -7,7 +7,7 @@ gcloud container clusters get-credentials cluster-${CLUSTER}  --location=us-east
 
 kubectl apply -f k8s/namespace.yml
 
-docker build -t us-docker.pkg.dev/gogue-465312/docker/gg-api:latest -t us-docker.pkg.dev/gogue-465312/docker/g-api:${PROJECT}-${ENV}-${SHA} .
+docker build -t us-docker.pkg.dev/gogue-465312/docker/gg-api:latest -t us-docker.pkg.dev/gogue-465312/docker/gg-api:${PROJECT}-${ENV}-${SHA} .
 docker push us-docker.pkg.dev/gogue-465312/docker/gg-api:latest
 docker push us-docker.pkg.dev/gogue-465312/docker/gg-api:${PROJECT}-${ENV}-${SHA}
 
