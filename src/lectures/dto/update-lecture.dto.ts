@@ -80,6 +80,10 @@ export class UpdateLectureDto {
   @IsNotEmpty()
   emoji?: string;
 
+  @IsString()
+  @IsNotEmpty()
+  languageCode?: string;
+
   @IsArray()
   @IsNotEmpty()
   sections?: UpdateLectureSectionDto[];  

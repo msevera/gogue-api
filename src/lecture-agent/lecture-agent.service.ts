@@ -49,6 +49,7 @@ export class LectureAgentService {
     input: Annotation<string>(),
     duration: Annotation<number>(),
     topic: Annotation<string>(),
+    languageCode: Annotation<string>(),
     title: Annotation<string>(),
     emoji: Annotation<string>(),
     plan: Annotation<PlanSection[]>(),
@@ -167,16 +168,16 @@ export class LectureAgentService {
 
     const result = await this.normalizeModel.invoke([...prompt]);
     const parsed = JSON.parse(result.content as string);
-    const { title, topic, emoji } = parsed;
+    const { title, topic, emoji, language_code } = parsed;
 
-    return { topic, title, emoji };
+    return { topic, title, emoji, languageCode: language_code };
   }
 
   private planNode = async (
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
-    const { emoji, topic, title, duration } = state;
+    const { emoji, topic, title, duration, languageCode } = state;
     const { authContext, lectureId } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
@@ -192,6 +193,7 @@ export class LectureAgentService {
       topic,
       title,
       emoji,
+      languageCode,
       creationEvent: {
         name: generatingPlanEvent
       }

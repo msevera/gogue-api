@@ -17,3 +17,14 @@ export class Category extends CacheEntity {
 }
 
 export const CategoryEntity = SchemaFactory.createForClass(Category);
+
+// vector index
+// name_embeddings_cosine
+// {
+//   "fields": [{
+//     "type": "vector",
+//     "path": "nameEmbeddings",
+//     "numDimensions": 1536,
+//     "similarity": "cosine"
+//   }]
+// }

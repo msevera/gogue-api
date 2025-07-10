@@ -213,6 +213,21 @@ export class Lecture extends WorkspaceEntity {
   @Field(() => Boolean)
   @Prop({ required: true, default: true })
   isPublic?: boolean;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false, default: 'en' })
+  languageCode?: string;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);
+
+// vector index
+// topic_embeddings_cosine
+// {
+//   "fields": [{
+//     "type": "vector",
+//     "path": "topicEmbeddings",
+//     "numDimensions": 1536,
+//     "similarity": "cosine"
+//   }]
+// }

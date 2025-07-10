@@ -28,6 +28,10 @@ export class LectureCreatedServiceDto {
   @IsOptional()
   emoji?: string;
 
+  @IsString()
+  @IsOptional()
+  languageCode?: string;
+
   @IsNotEmpty()
   userId: string;
 

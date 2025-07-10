@@ -95,6 +95,20 @@ export class LecturesService extends AbstractService<Lecture> {
   }
 
   async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {
+    // Testing purposes
+    // setTimeout(() => {
+    //   const fn = async () => {
+    //     const lecture = await this.lecturesRepository.findOne(authContext, { id: '686f5f4d02b4bcdeea1817af' });
+    //     await this.pubSubService.publish<Lecture>(LectureCreatingTopic, {
+    //       ...lecture,
+    //       creationEvent: {
+    //         name: 'DONE'
+    //       },
+    //     });
+    //   }
+
+    //   fn();
+    // }, 5000);
     const { duration, input } = lectureAgentInput;
     const thread_id = `${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
 
@@ -147,6 +161,7 @@ export class LecturesService extends AbstractService<Lecture> {
                 topic: lecture.topic,
                 title: lecture.title,
                 emoji: lecture.emoji,
+                languageCode: lecture.languageCode,
                 userId: lecture.userId,
                 workspaceId: lecture.workspaceId,
                 sections: lecture.sections.map(section => ({
@@ -175,6 +190,7 @@ export class LecturesService extends AbstractService<Lecture> {
       topic: lecture.topic,
       title: lecture.title,
       emoji: lecture.emoji,
+      languageCode: lecture.languageCode,
       userId: lecture.userId,
       workspaceId: lecture.workspaceId,
       sections: lecture.sections.map(section => ({

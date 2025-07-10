@@ -8,7 +8,8 @@ export const responseSchema = {
       "required": [
         "emoji",
         "title",
-        "topic"        
+        "topic",
+        "language_code"
       ],
       "properties": {
         "emoji": {
@@ -22,6 +23,17 @@ export const responseSchema = {
         "topic": {
           "type": "string",
           "description": "Lecture expanded topic"
+        },
+        "language_code": {
+          "type": "string",
+          "description": "Topic's language code",
+          "enum": [
+            "en",
+            "uk",
+            "fr",
+            "de",
+            "pl"
+          ]
         }
       },
       "additionalProperties": false
