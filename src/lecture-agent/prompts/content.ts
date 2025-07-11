@@ -9,8 +9,9 @@ Instructions:
 6. Present your answer as text without a title
 7. Do not use markdown.
 8. Do not use lists
-9. You will be penalized if you repeat the any part from previous_sections
-10. You will be penalized if you do not use web search tool
+9. Do not use ## for headers.
+10. You will be penalized if you repeat the any part from previous_sections
+11. You will be penalized if you do not use web search tool
 
 Inputs:
 <section_overview>{SECTION_OVERVIEW}</section_overview>
@@ -30,7 +31,8 @@ Instructions:
 6. Present your answer as text without a title
 7. Do not use any markdown.
 8. Do not use lists
-9. You will be penalized if you do not use web search tool
+9. Do not use ## for headers.
+10. You will be penalized if you do not use web search tool
 
 Inputs:
 <section_overview>{SECTION_OVERVIEW}</section_overview>
