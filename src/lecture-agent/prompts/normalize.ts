@@ -4,7 +4,7 @@ Instructions:
 1. If the input is vague or too short (e.g. "startups"), expand it into a clear and educational title (e.g. "The Fundamentals of Launching a Startup").
 2. Do not add unrelated information.
 3. Output the improved topic as a single sentence.
+4. You will be penalized if you do not use web search tool.
 
 Inputs:
-- User input: {INPUT}
-`
+- User input: {INPUT}`

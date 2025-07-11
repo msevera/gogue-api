@@ -28,7 +28,7 @@
     "@langchain/core": "^0.3.53",
     "@langchain/langgraph": "^0.2.68",
     "@langchain/langgraph-checkpoint-mongodb": "^0.0.6",
-    "@langchain/openai": "^0.5.10",
+    "@langchain/openai": "0.5.10",
     "@nestjs/apollo": "^13.0.2",
     "@nestjs/common": "^11.0.4",
     "@nestjs/config": "^4.0.0",
