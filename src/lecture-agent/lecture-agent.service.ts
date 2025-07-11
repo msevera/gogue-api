@@ -80,16 +80,20 @@ export class LectureAgentService {
     this.normalizeModel = new ChatOpenAI({
       ...modelSettings,
       modelKwargs: {
-        response_format: normalizeAgentResponseSchema
+        text: {
+          format: normalizeAgentResponseSchema
+        }
       }
-    });
+    }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
     this.planModel = new ChatOpenAI({
       ...modelSettings,
       modelKwargs: {
-        response_format: planAgentResponseSchema
+        text: {
+          format: planAgentResponseSchema
+        }        
       }
-    });
+    }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
     this.overviewModel = new ChatOpenAI({
       ...modelSettings,
@@ -167,7 +171,7 @@ export class LectureAgentService {
     });
 
     const result = await this.normalizeModel.invoke([...prompt]);
-    const parsed = JSON.parse(result.content as string);
+    const parsed = result.additional_kwargs.parsed;
     const { title, topic, emoji, language_code } = parsed;
 
     return { topic, title, emoji, languageCode: language_code };
@@ -212,7 +216,7 @@ export class LectureAgentService {
     });
 
     const result = await this.planModel.invoke([...prompt]);
-    const parsed = JSON.parse(result.content as string);
+    const parsed = result.additional_kwargs.parsed;
     plan = parsed.sections;
 
     return { plan };

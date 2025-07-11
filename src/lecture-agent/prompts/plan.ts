@@ -7,6 +7,9 @@ Instructions:
   - 10 min → Intro (x1 min) + 3 Sections (x2 min each) + Conclusion (x3 min)
   - 15 min → Intro (x1 min) + 4 Sections (x3 min each) + Conclusion (x3 min)
 3. Ensure sum of “duration” fields equals {DURATION}.
+4. Each section should be in a logical progression.
+5. You will be penalized if you do not use web search tool.
+6. You will be penalized if you repeat yourself.
  
 Inputs:
 - topic: {TOPIC}
