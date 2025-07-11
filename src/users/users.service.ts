@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { AbstractService, findOneOptions } from '@app/common/services/abstract.service';
 import { User } from './entities/user.entity';
 import { Role } from '@app/common/dtos/role.enum.dto';
+import { SetTopicsDto } from './dto/set-topics.dto';
 
 @Injectable()
 export class UsersService extends AbstractService<User> {
@@ -64,6 +65,16 @@ export class UsersService extends AbstractService<User> {
       $set: {
         firstName: profile.firstName,
         lastName: profile.lastName,
+      }
+    });
+
+    return user;
+  }
+
+  async setTopics(id: string, topics: SetTopicsDto): Promise<User> {
+    const user = await this.usersRepository.updateOne(null, { id }, {
+      $set: {
+        topics
       }
     });
 

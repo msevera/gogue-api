@@ -27,4 +27,10 @@ export class UsersResolver {
   async setProfile(@AuthContext() authContext: AuthContextType, @Args('input') input: SetProfileDto) {
     return this.usersService.setProfile(authContext.user.id, input);
   }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => User, { name: 'removeTopic', nullable: true })
+  async removeTopic(@AuthContext() authContext: AuthContextType, @Args('input') input: SetProfileDto) {
+    return this.usersService.setProfile(authContext.user.id, input);
+  }
 }

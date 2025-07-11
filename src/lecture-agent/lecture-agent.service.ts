@@ -44,7 +44,6 @@ class Category {
 
 @Injectable()
 export class LectureAgentService {
-
   private graphAnnotation = Annotation.Root({
     input: Annotation<string>(),
     duration: Annotation<number>(),

@@ -4,6 +4,7 @@ import { Workspace } from '../../../src/workspaces/enitities/workspace.entity';
 import { CacheEntity } from '@app/common/types/cache-entity.type';
 import { CustomSchema } from '@app/common/database/custom-schema.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
+import { BaseEntity } from '@app/common/types/base-entity.type';
 
 @Schema({ _id: false })
 @ObjectType()
@@ -14,6 +15,22 @@ export class WorkspaceItem {
 
   @Field(() => Workspace)
   workspace?: Workspace
+}
+
+@Schema()
+@ObjectType()
+export class UserTopic extends BaseEntity {
+  @Field(() => String)
+  @Prop({ required: true })
+  name: string;
+
+  @Field(() => String)
+  @Prop({ required: true })
+  nameId: string;
+
+  @Field(() => String)
+  @Prop({ required: true })
+  overview: string;
 }
 
 @CustomSchema()
@@ -49,6 +66,10 @@ export class User extends CacheEntity {
   @Field(() => [WorkspaceItem])
   @Prop({ type: [WorkspaceItem] })
   workspaces: WorkspaceItem[];
+
+  @Field(() => [UserTopic])
+  @Prop({ type: [UserTopic], default: [] })
+  topics?: UserTopic[];
 }
 
 export const UserEntity = SchemaFactory.createForClass(User);
