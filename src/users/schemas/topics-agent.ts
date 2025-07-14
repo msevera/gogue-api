@@ -2,39 +2,36 @@ export const responseSchema = {
   "type": "json_schema",
   "json_schema": {
     "name": "response_schema",
-    "strict": true,
+    "strict": false,
     "schema": {
       "type": "object",
-      "required": [
-        "interes_topics"
-      ],
+      "required": [],
       "properties": {
-        "interes_topics": {
+        "response_text": {
+          "type": "string",
+          "description": "Response text. Must one sentence long. Do not include category name."
+        },       
+        "new_categories": {
           "type": "array",
           "items": {
             "type": "object",
             "required": [
-               "id",
-              "name",
-              "overview"             
+              "emoji",
+              "name"
             ],
             "properties": {
-              "id": {
+              "emoji": {
                 "type": "string",
-                "description": "Topic id. If topic already exists, use it. If not, leave field empty."
+                "description": "Emoji for the category"
               },
               "name": {
                 "type": "string",
-                "description": "Topic name"
-              },
-              "overview": {
-                "type": "string",
-                "description": "Topic description. At least one sentence long"
+                "description": "User new category name"
               }
             },
             "additionalProperties": false
           },
-          "description": "List of interest topics"
+          "description": "List of new lecture categories user might be interested at. Do not add existing categories. Add here only the new ones that you have detected. Must be at minumum 20 categories. Categories must be sorted by meaning."
         }
       },
       "additionalProperties": false

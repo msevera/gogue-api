@@ -22,22 +22,22 @@ async function bootstrap() {
     password: kafkaPassword,
   } : undefined;
   
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        brokers: [configService.get<string>('KAFKA_BROKER')],
-        logLevel: 4,
-        sasl: sasl as SASLOptions,
-      },
-      consumer: {
-        groupId: configService.get<string>('KAFKA_PROCESSING_GROUP'),
-      },
-      run: {
-        autoCommit: false,
-      }
-    }
-  });
+  // app.connectMicroservice<MicroserviceOptions>({
+  //   transport: Transport.KAFKA,
+  //   options: {
+  //     client: {
+  //       brokers: [configService.get<string>('KAFKA_BROKER')],
+  //       logLevel: 4,
+  //       sasl: sasl as SASLOptions,
+  //     },
+  //     consumer: {
+  //       groupId: configService.get<string>('KAFKA_PROCESSING_GROUP'),
+  //     },
+  //     run: {
+  //       autoCommit: false,
+  //     }
+  //   }
+  // });
 
   app.use(json({ limit: '50mb' }));
 

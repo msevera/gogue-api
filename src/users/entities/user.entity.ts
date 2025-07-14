@@ -29,6 +29,10 @@ export class UserTopic extends BaseEntity {
   nameId: string;
 
   @Field(() => String)
+  @Prop({ required: true, enum: ['general', 'narrowed'] })
+  type: string;
+
+  @Field(() => String)
   @Prop({ required: true })
   overview: string;
 }
@@ -70,6 +74,10 @@ export class User extends CacheEntity {
   @Field(() => [UserTopic])
   @Prop({ type: [UserTopic], default: [] })
   topics?: UserTopic[];
+
+  @Field(() => [Number])
+  @Prop({ required: false })
+  topicsEmbeddings?: number[];
 }
 
 export const UserEntity = SchemaFactory.createForClass(User);

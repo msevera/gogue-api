@@ -4,33 +4,42 @@ import { Body, Controller } from '@nestjs/common';
 import { Observable } from 'rxjs';;
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
-import { isAIMessageChunk } from '@langchain/core/messages';
+import { HumanMessage, isAIMessageChunk } from '@langchain/core/messages';
 import { UsersTopicsAgentInputDto } from './dto/user-topics-agent.dto';
 import { UsersTopicsAgentService } from './users-topics-agent.service';
 
-@Controller('lecture-agent')
-export class LectureAgentController {
+@Controller('users-topics-agent')
+export class UsersTopicsAgentController {
   constructor(
     private readonly usersTopicsAgentService: UsersTopicsAgentService,
 
   ) { }
 
+  private getThreadId(authContext: AuthContextType) {
+    return `${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
+  }
+
   @Auth(Role.CONSUMER)
-  @SsePost('create')
+  @SsePost('topics')
   async invoke(
     @Body() usersTopicsAgentInput: UsersTopicsAgentInputDto,
     @AuthContext() authContext: AuthContextType,
   ): Promise<Observable<MessageEvent>> {
 
-    const { input } = usersTopicsAgentInput;
+    const { input, threadId, store } = usersTopicsAgentInput;
+    const thread_id = threadId || this.getThreadId(authContext);
+    
 
     const eventStream = await this.usersTopicsAgentService.graph.streamEvents(
       {
-        input
+        
       },
       {
         configurable: {
+          thread_id,
           authContext,
+          input: input ? new HumanMessage(input) : null,
+          store,
         },
         version: 'v2',
       },
@@ -39,6 +48,11 @@ export class LectureAgentController {
     return new Observable<MessageEvent>((subscriber) => {
       (async () => {
         try {
+          subscriber.next({
+            type: 'THREAD_ID',
+            data: thread_id,
+          } as MessageEvent);
+
           for await (const item of eventStream) {
             const { event, name, data } = item;
             try {
@@ -97,7 +111,6 @@ export class LectureAgentController {
               console.log('error', error)
             }
           }
-
 
           subscriber.next({
             type: 'DONE',

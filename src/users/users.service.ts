@@ -9,13 +9,15 @@ import { AbstractService, findOneOptions } from '@app/common/services/abstract.s
 import { User } from './entities/user.entity';
 import { Role } from '@app/common/dtos/role.enum.dto';
 import { SetTopicsDto } from './dto/set-topics.dto';
+import { EmbeddingsService } from 'src/embeddings/embeddings.service';
 
 @Injectable()
 export class UsersService extends AbstractService<User> {
   constructor(
     private firebaseService: FirebaseService,
     private usersRepository: UsersRepository,
-    private workspacesService: WorkspacesService
+    private workspacesService: WorkspacesService,
+    private readonly embeddingsService: EmbeddingsService,
   ) {
     super(usersRepository);
   }
@@ -71,10 +73,14 @@ export class UsersService extends AbstractService<User> {
     return user;
   }
 
-  async setTopics(id: string, topics: SetTopicsDto): Promise<User> {
+  async setTopics(id: string, data: SetTopicsDto): Promise<User> {
+    const topicsNames = data.topics.map(topic => topic.name);
+    const topicsEmbeddings = await this.embeddingsService.embeddings.embedQuery(topicsNames.join(', '));
+
     const user = await this.usersRepository.updateOne(null, { id }, {
       $set: {
-        topics
+        topics: data.topics,
+        topicsEmbeddings
       }
     });
 

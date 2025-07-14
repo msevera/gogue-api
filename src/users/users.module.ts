@@ -7,14 +7,19 @@ import { FirebaseService } from '../firebase/firebase.service';
 import { FirebaseModule } from '../firebase/firebase.module';
 import { UsersRepository } from './users.repository';
 import { WorkspacesModule } from '../workspaces/workspaces.module';
+import { UsersTopicsAgentController } from './users-topics-agent.controller';
+import { UsersTopicsAgentService } from './users-topics-agent.service';
+import { EmbeddingsModule } from 'src/embeddings/embeddings.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserEntity }]),
     FirebaseModule,
-    WorkspacesModule
+    WorkspacesModule,
+    EmbeddingsModule
   ],
-  providers: [UsersResolver, UsersService, FirebaseService, UsersRepository],
+  controllers: [UsersTopicsAgentController],
+  providers: [UsersResolver, UsersService, FirebaseService, UsersRepository, UsersTopicsAgentService],
   exports: [UsersService, UsersRepository],
 })
 export class UsersModule {}
