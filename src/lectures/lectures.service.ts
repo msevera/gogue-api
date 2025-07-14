@@ -94,6 +94,10 @@ export class LecturesService extends AbstractService<Lecture> {
     return this.lecturesRepository.deleteOne(authContext, { id });
   }
 
+  async findRecommended(authContext: AuthContextType, pagination?: PaginationDto<Lecture>) {
+    return this.lecturesRepository.findRecommended(authContext, pagination);
+  }
+
   async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {
     // Testing purposes
     // setTimeout(() => {

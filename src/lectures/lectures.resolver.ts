@@ -103,6 +103,15 @@ export class LecturesResolver {
   }
 
   @Auth(Role.CONSUMER)
+  @Query(() => LecturesCursorDto, { name: 'lecturesRecommended' })
+  async findRecommended(
+    @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    return this.lecturesService.findRecommended(authContext, pagination);    
+  }
+
+  @Auth(Role.CONSUMER)
   @Query(() => Lecture, { name: 'pendingLecture', nullable: true })
   async pendingLecture(
     @AuthContext() authContext: AuthContextType
