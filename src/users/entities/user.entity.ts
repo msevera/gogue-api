@@ -78,6 +78,18 @@ export class User extends CacheEntity {
   @Field(() => [Number])
   @Prop({ required: false })
   topicsEmbeddings?: number[];
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  timezone?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  glimpsesJobId?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false, default: '0 0 8 * * *' })
+  glimpsesJobPattern?: string;
 }
 
 export const UserEntity = SchemaFactory.createForClass(User);

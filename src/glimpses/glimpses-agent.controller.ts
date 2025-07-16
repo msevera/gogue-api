@@ -5,41 +5,40 @@ import { Observable } from 'rxjs';;
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
 import { HumanMessage, isAIMessageChunk } from '@langchain/core/messages';
-import { UsersTopicsAgentInputDto } from './dto/user-topics-agent.dto';
-import { UsersTopicsAgentService } from './users-topics-agent.service';
+import { GlimpsesAgentService } from './glimpses-agent.service';
 
 @Controller('users-topics-agent')
 export class UsersTopicsAgentController {
   constructor(
-    private readonly usersTopicsAgentService: UsersTopicsAgentService,
+    private readonly glimpsesAgentService: GlimpsesAgentService,
 
   ) { }
 
-  private getThreadId(authContext: AuthContextType) {
-    return `${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
-  }
+  // private getThreadId(authContext: AuthContextType) {
+  //   return `${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
+  // }
 
   @Auth(Role.CONSUMER)
   @SsePost('topics')
   async invoke(
-    @Body() usersTopicsAgentInput: UsersTopicsAgentInputDto,
+    // @Body() glimpsesAgentInput: GlimpsesAgentService,
     @AuthContext() authContext: AuthContextType,
   ): Promise<Observable<MessageEvent>> {
 
-    const { input, threadId, store } = usersTopicsAgentInput;
-    const thread_id = threadId || this.getThreadId(authContext);
+    // const { input, threadId, store } = glimpsesAgentInput;
+    // const thread_id = threadId || this.getThreadId(authContext);
     
 
-    const eventStream = await this.usersTopicsAgentService.graph.streamEvents(
+    const eventStream = await this.glimpsesAgentService.graph.streamEvents(
       {
         
       },
       {
         configurable: {
-          thread_id,
+          // thread_id,
           authContext,
-          input: input ? new HumanMessage(input) : null,
-          store
+          // input: input ? new HumanMessage(input) : null,
+          // store,
         },
         version: 'v2',
       },
@@ -48,10 +47,10 @@ export class UsersTopicsAgentController {
     return new Observable<MessageEvent>((subscriber) => {
       (async () => {
         try {
-          subscriber.next({
-            type: 'THREAD_ID',
-            data: thread_id,
-          } as MessageEvent);
+          // subscriber.next({
+          //   type: 'THREAD_ID',
+          //   data: thread_id,
+          // } as MessageEvent);
 
           for await (const item of eventStream) {
             const { event, name, data } = item;

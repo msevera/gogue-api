@@ -15,6 +15,8 @@ import { prompt as topicsFinalizePrompt } from './prompt/topics-finalize';
 import { ConfigService } from '@nestjs/config';
 import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class UsersTopicsAgentService {
@@ -32,7 +34,7 @@ export class UsersTopicsAgentService {
 
   constructor(
     private configService: ConfigService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,    
   ) {
     const modelSettings = {
       model: 'gpt-4.1',
@@ -117,6 +119,7 @@ export class UsersTopicsAgentService {
       chunk: {}
     });
 
+    await this.usersService.addGlimpsesJob(authContext);
 
     return { chatMessages: [new AIMessage(result.content as string)] };
   }

@@ -10,9 +10,13 @@ import { WorkspacesModule } from '../workspaces/workspaces.module';
 import { UsersTopicsAgentController } from './users-topics-agent.controller';
 import { UsersTopicsAgentService } from './users-topics-agent.service';
 import { EmbeddingsModule } from 'src/embeddings/embeddings.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
+    BullModule.registerQueue({
+      name: 'glimpses',
+    }),
     MongooseModule.forFeature([{ name: User.name, schema: UserEntity }]),
     FirebaseModule,
     WorkspacesModule,

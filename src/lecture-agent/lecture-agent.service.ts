@@ -20,7 +20,6 @@ import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { LecturesService } from '../lectures/lectures.service';
 import { CategoriesService } from '../categories/categories.service';
 
-
 class ContentAnnotation {
   startIndex: number;
   endIndex: number;
@@ -90,7 +89,7 @@ export class LectureAgentService {
       modelKwargs: {
         text: {
           format: planAgentResponseSchema
-        }        
+        }
       }
     }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 

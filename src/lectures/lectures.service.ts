@@ -114,7 +114,7 @@ export class LecturesService extends AbstractService<Lecture> {
     //   fn();
     // }, 5000);
     const { duration, input } = lectureAgentInput;
-    const thread_id = `${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
+    const thread_id = `lectures-${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
 
     let lecture = await this.lecturesRepository.create(authContext, {
       duration,
