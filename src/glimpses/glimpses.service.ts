@@ -147,4 +147,8 @@ export class GlimpsesService extends AbstractService<Glimpse> {
     await this.updateGlimpseStatus(authContext, 'OLD');
     return this.glimpsesRepository.updateOne(authContext, { id: input.id }, { $set: { viewed: true } });
   }
+
+  async setGlimsesQueries(authContext: AuthContextType, queries: { id: string, query: string }[]) {
+    return this.glimpsesRepository.setQueries(authContext, queries);
+  }
 }

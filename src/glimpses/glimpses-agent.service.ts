@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { GlimpsesService } from './glimpses.service';
 import { prompts as glimpsesPrompt } from './prompts/glimpses';
+import { prompts as queriesPrompt } from './prompts/queries';
+import { responseSchema as queriesAgentResponseSchema } from './schemas/queries-agent';
 
 class ContentAnnotation {
   startIndex: number;
@@ -18,6 +20,7 @@ class ContentAnnotation {
 }
 
 class Plan {
+  glimpseId?: string;
   id: number;
   topicId: string;
   content: string;
@@ -57,6 +60,7 @@ export class GlimpsesAgentService {
   private _graph: any;
   private maxGlimpses: number;
   glimpsesModel: any;
+  queriesModel: any;
 
   constructor(
     private configService: ConfigService,
@@ -73,13 +77,22 @@ export class GlimpsesAgentService {
       ...modelSettings
     }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
+    this.queriesModel = new ChatOpenAI({
+      ...modelSettings,
+      modelKwargs: {
+        response_format: queriesAgentResponseSchema
+      }
+    })
+
     this.builder = new StateGraph(this.graphAnnotation)
       .addNode('planNode', this.planNode)
       .addNode('glimpseNode', this.glimpseNode)
+      .addNode('queriesNode', this.queriesNode)
       .addNode('finalNode', this.finalNode)
       .addEdge(START, 'planNode')
       .addConditionalEdges('planNode', this.routeToGlimpseNode)
       .addEdge('glimpseNode', 'planNode')
+      .addEdge('queriesNode', 'finalNode')
       .addEdge('finalNode', END);
 
     this._graph = this.builder.compile();
@@ -106,7 +119,6 @@ export class GlimpsesAgentService {
     const topicIds = topics.map(topic => topic.id);
     const nonViewedGlimpses = await this.glimpsesService.getNonViewedGlimpses(authContext);
     const newGlimpses = this.maxGlimpses - nonViewedGlimpses.items.length;
-    console.log('newGlimpses', newGlimpses);
     if (newGlimpses === 0) {
       return { plan: [] }
     }
@@ -117,7 +129,6 @@ export class GlimpsesAgentService {
     });
     const randomTopicIds = getRandomItems(topicIds, newGlimpses)
 
-    console.log('randomTopicIds', randomTopicIds);
     return { plan: randomTopicIds.map((topicId, idx) => ({ topicId, id: idx })) }
   }
 
@@ -165,12 +176,50 @@ export class GlimpsesAgentService {
         if (item.id === id) {
           return {
             ...item,
-            content: firstResult.text
+            content: firstResult.text,
+            glimpseId: glimpse.id
           };
         }
         return item;
       })
     };
+  }
+
+  private queriesNode = async (
+    state: typeof this.graphAnnotation.State,
+    config?: RunnableConfig,
+  ) => {
+    const { plan } = state;
+    const { authContext } = config.configurable as {
+      authContext: AuthContextType;
+    };
+
+    const systemPrompt =
+      SystemMessagePromptTemplate.fromTemplate(queriesPrompt);
+
+    const prompt = await systemPrompt.invoke({
+      TOPICS: JSON.stringify(plan.map(item => ({
+        id: item.glimpseId,
+        content: item.content
+      }))),
+    });
+
+
+    const result = await this.queriesModel.invoke([...prompt]);
+    const parsed = JSON.parse(result.content as string);
+    const { queries } = parsed;
+
+
+    const queriesData = queries.map((query) => {
+      return ({
+        id: query.topic_id,
+        query: query.query_text
+      })
+    })
+
+    await this.glimpsesService.setGlimsesQueries(authContext, queriesData);
+
+    return {};
   }
 
   private finalNode = async (
@@ -200,6 +249,6 @@ export class GlimpsesAgentService {
       return 'glimpseNode';
     }
 
-    return 'finalNode';
+    return 'queriesNode';
   }
 }

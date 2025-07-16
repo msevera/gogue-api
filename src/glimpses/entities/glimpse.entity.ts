@@ -53,6 +53,10 @@ export class Glimpse extends WorkspaceEntity {
   @Prop({ required: true })
   content: string;
 
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  query?: string;
+
   @Field(() => [GlimpseAnnotation], { nullable: true })
   @Prop({ required: false, type: [GlimpseAnnotation] })
   annotations?: GlimpseAnnotation[];
