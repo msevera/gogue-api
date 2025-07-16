@@ -12,7 +12,8 @@ import { PubSubModule } from '../pubsub/pubsub.module';
 import { GlimpsesStatusRepository } from './glimpses-status.repository';
 import { GlimpsesAgentService } from './glimpses-agent.service';
 import { GlimpsesConsumer } from './glimpses.consumer';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 
 @Module({
@@ -24,7 +25,8 @@ import { UsersModule } from 'src/users/users.module';
     MongooseModule.forFeature([{ name: GlimpseCheckpoint.name, schema: GlimpseCheckpointEntity }]),
     MongooseModule.forFeature([{ name: GlimpseStatus.name, schema: GlimpseStatusEntity }]),
     PubSubModule,
-    UsersModule
+    UsersModule,
+    NotificationsModule
   ],
   providers: [
     GlimpsesResolver, GlimpsesService, GlimpsesRepository, GlimpsesCheckpointRepository, GlimpsesStatusRepository, GlimpsesAgentService, 

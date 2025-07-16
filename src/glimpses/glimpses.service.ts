@@ -13,6 +13,8 @@ import { SortOrder } from '@app/common/database/options';
 import { GlimpseStatusUpdatedTopic } from './topics/glimpse-status-updated.topic';
 import { GlimpseStatus } from './entities/glimpse-status.entity';
 import { SetGlimpseViewedInputDto } from './dto/set-glimpse-viewed.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { GlimpsesReadyNotification } from './notifications/glimpses-ready.notification';
 
 @Injectable()
 export class GlimpsesService extends AbstractService<Glimpse> {
@@ -20,9 +22,10 @@ export class GlimpsesService extends AbstractService<Glimpse> {
     private readonly glimpsesRepository: GlimpsesRepository,
     private readonly glimpsesCheckpointRepository: GlimpsesCheckpointRepository,
     private readonly glimpsesStatusRepository: GlimpsesStatusRepository,
-    private readonly pubSubService: PubSubService,    
+    private readonly pubSubService: PubSubService,
     @Inject(forwardRef(() => GlimpsesAgentService))
-    private readonly glimpsesAgentService: GlimpsesAgentService
+    private readonly glimpsesAgentService: GlimpsesAgentService,
+    private readonly notificationsService: NotificationsService
 
   ) {
     super(glimpsesRepository);
@@ -122,14 +125,16 @@ export class GlimpsesService extends AbstractService<Glimpse> {
         } catch (error) {
           console.log('error', error)
         }
-      }      
+      }
+
+      await this.notificationsService.sendNotification(GlimpsesReadyNotification, authContext, null);
     } catch (error) {
       console.log('CallAgent error', error)
     }
   }
 
   async findLatest(authContext: AuthContextType) {
-    const result = await this.glimpsesRepository.find(authContext, { }, {
+    const result = await this.glimpsesRepository.find(authContext, {}, {
       limit: 10,
       sort: [
         {
