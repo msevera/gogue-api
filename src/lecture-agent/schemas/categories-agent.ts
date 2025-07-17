@@ -20,11 +20,11 @@ export const responseSchema = {
             "properties": {
               "category_name": {
                 "type": "string",
-                "description": "Category name"
+                "description": "Category name."
               },
               "category_id": {
                 "type": "string",
-                "description": "Existing category id. If the category is not found, use NEW keyword as a category id."
+                "description": "Existing category id. If the category is not found, leave id empty."
               }
             },
             "additionalProperties": false

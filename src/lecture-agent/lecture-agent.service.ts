@@ -124,8 +124,7 @@ export class LectureAgentService {
       .addConditionalEdges('planNode', this.routeToContentNode)
       .addEdge('contentNode', 'planNode')
       .addEdge('beforeExtractionNode', 'overviewNode')
-      .addEdge('beforeExtractionNode', 'categoriesNode')
-      .addEdge('overviewNode', 'finalNode')
+      .addEdge('overviewNode', 'categoriesNode')
       .addEdge('categoriesNode', 'finalNode')
       .addEdge('finalNode', END);
 
@@ -380,7 +379,7 @@ export class LectureAgentService {
         name: category.name,
         id: category.id
       }))),
-      CONTENT: lecture.sections.map(section => section.content).join('\n'),
+      CONTENT: lecture?.overview,
     });
 
     const result = await this.categoriesModel.invoke([...prompt]);
@@ -411,13 +410,13 @@ export class LectureAgentService {
 
       const newCategories = await this.categoriesService.createMany(
         categories
-          .filter(category => category.id === 'NEW')
+          .filter(category => category.id === '')
           .map(category => ({
             name: category.name,
           }))
       );
 
-      const existingCategories = categories.filter(category => category.id !== 'NEW');
+      const existingCategories = categories.filter(category => category.id !== '');
 
       await this.lecturesService.updateOne(authContext, lectureId, {
         overview,
