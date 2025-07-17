@@ -31,6 +31,17 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
     return resource;
   }
 
+  async findOnePendingShowNotification(
+    authContext: AuthContextType | false,
+  ) {
+    const resource = await this.findOne(authContext, {
+      // @ts-ignore
+      'creationEvent.showNotification': true
+    });
+
+    return resource;
+  }
+
   async find(
     authContext: AuthContextType,
     input: FindLecturesInputDto,
@@ -49,11 +60,50 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
     return super.find(false, query, pagination);
   }
 
+  async findRecommended(authContext: AuthContextType,
+    pagination?: PaginationDto<Lecture>) {
+    const result = authContext.user.topicsEmbeddings.length > 0 ? await this.model.aggregate(
+      [
+        {
+          $vectorSearch: {
+            index: 'topic_embeddings_cosine',
+            path: 'topicEmbeddings',
+            queryVector: authContext.user.topicsEmbeddings,
+            numCandidates: 10 * 20,
+            limit: 15,
+          }
+        },
+        {
+          $addFields: {
+            id: '$_id',
+            score: {
+              $meta: 'vectorSearchScore'
+            }
+          }
+        }
+      ]
+    ).exec() : [];
+
+    // console.log('result', result.map(r => ({
+    //   id: r._id,
+    //   score: r.score,
+    //   name: r.name,
+    //   topic: r.topic
+    // })));
+
+    return super.wrapIntoCursor(result, {
+      hasPrev: false,
+      prev: null,
+      hasNext: false,
+      next: null,
+    });
+  }
+
   async findSearch(
     authContext: AuthContextType,
     input: SearchLecturesInputDto,
     pagination?: PaginationDto<Lecture>
-  ) {    
+  ) {
     const result = await this.model.aggregate(
       [
         {
@@ -64,7 +114,7 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
             numCandidates: 10 * 20,
             limit: 10,
           }
-        },       
+        },
         {
           $addFields: {
             id: '$_id',

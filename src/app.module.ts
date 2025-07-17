@@ -29,11 +29,24 @@ import { NotesModule } from './notes/notes.module';
 import { NoteAgentModule } from './note-agent/note-agent.module';
 import { NoteMessagesModule } from './note-messages/note-messages.module';
 import { CategoriesModule } from './categories/categories.module';
+import { BullModule } from '@nestjs/bullmq';
+import { GlimpsesModule } from './glimpses/glimpses.module';
 
 ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
 
 @Module({
-  imports: [   
+  imports: [
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        connection: {
+          host: configService.getOrThrow('REDIS_HOST'),
+          port: configService.getOrThrow('REDIS_PORT'),
+          db: 1
+        },
+      }),
+      inject: [ConfigService],
+    }),
     UsersModule,
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -80,7 +93,7 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
                 // user validation will remain the same as in the example above
                 // when using with graphql-ws, additional context value should be stored in the extra field
                 extra.authContext = { user, workspaceId: tenantId };
-              },             
+              },
             },
           },
         };
@@ -118,7 +131,7 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
       inject: [ConfigService],
     }),
     FirebaseModule,
-    AuthModule,  
+    AuthModule,
     EmbeddingsModule,
     WorkspacesModule,
     PubSubModule,
@@ -128,7 +141,8 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
     NotesModule,
     NoteAgentModule,
     NoteMessagesModule,
-    CategoriesModule
+    CategoriesModule,
+    GlimpsesModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -20,7 +20,6 @@ import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { LecturesService } from '../lectures/lectures.service';
 import { CategoriesService } from '../categories/categories.service';
 
-
 class ContentAnnotation {
   startIndex: number;
   endIndex: number;
@@ -44,7 +43,6 @@ class Category {
 
 @Injectable()
 export class LectureAgentService {
-
   private graphAnnotation = Annotation.Root({
     input: Annotation<string>(),
     duration: Annotation<number>(),
@@ -91,7 +89,7 @@ export class LectureAgentService {
       modelKwargs: {
         text: {
           format: planAgentResponseSchema
-        }        
+        }
       }
     }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
@@ -155,7 +153,8 @@ export class LectureAgentService {
     const normalizingTopicEvent = 'NORMALIZING_TOPIC';
     await this.lecturesService.updateOne(authContext, lectureId, {
       creationEvent: {
-        name: normalizingTopicEvent
+        name: normalizingTopicEvent,
+        showNotification: true
       }
     });
 
@@ -199,7 +198,8 @@ export class LectureAgentService {
       emoji,
       languageCode,
       creationEvent: {
-        name: generatingPlanEvent
+        name: generatingPlanEvent,
+        showNotification: true
       }
     });
 
@@ -259,6 +259,7 @@ export class LectureAgentService {
       sections: plan,
       creationEvent: {
         name: generatingContentEvent,
+        showNotification: true
       }
     });
 
@@ -322,6 +323,7 @@ export class LectureAgentService {
       sections: plan,
       creationEvent: {
         name: generatingOverviewEvent,
+        showNotification: true
       }
     });
 
@@ -360,6 +362,7 @@ export class LectureAgentService {
       sections: plan,
       creationEvent: {
         name: generatingCategoriesEvent,
+        showNotification: true
       }
     });
 
@@ -424,6 +427,7 @@ export class LectureAgentService {
           })),
         creationEvent: {
           name: finalizingEvent,
+          showNotification: true
         }
       });
 

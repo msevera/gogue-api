@@ -8,13 +8,21 @@ import mongoose from 'mongoose';
 import { AbstractService, findOneOptions } from '@app/common/services/abstract.service';
 import { User } from './entities/user.entity';
 import { Role } from '@app/common/dtos/role.enum.dto';
+import { SetTopicsDto } from './dto/set-topics.dto';
+import { EmbeddingsService } from 'src/embeddings/embeddings.service';
+import { SetTimezoneDto } from './dto/set-timezone.dto';
+import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class UsersService extends AbstractService<User> {
   constructor(
     private firebaseService: FirebaseService,
     private usersRepository: UsersRepository,
-    private workspacesService: WorkspacesService
+    private workspacesService: WorkspacesService,
+    private readonly embeddingsService: EmbeddingsService,
+    @InjectQueue('glimpses') private glimpsesQueue: Queue
   ) {
     super(usersRepository);
   }
@@ -67,6 +75,84 @@ export class UsersService extends AbstractService<User> {
       }
     });
 
+    return user;
+  }
+
+  async setTimezone(id: string, input: SetTimezoneDto): Promise<User> {
+    const user = await this.usersRepository.updateOne(null, { id }, {
+      $set: {
+        timezone: input.timezone
+      }
+    });
+
+    return user;
+  }
+
+  async setGlimpsesJobId(id: string, jobId: string): Promise<User> {
+    const user = await this.usersRepository.updateOne(null, { id }, {
+      $set: {
+        glimpsesJobId: jobId
+      }
+    });
+
+    return user;
+  }
+
+  async setTopics(id: string, data: SetTopicsDto): Promise<User> {
+    const topicsNames = data.topics.map(topic => topic.name);
+    const topicsEmbeddings = await this.embeddingsService.embeddings.embedQuery(topicsNames.join(', '));
+
+    const user = await this.usersRepository.updateOne(null, { id }, {
+      $set: {
+        topics: data.topics,
+        topicsEmbeddings
+      }
+    });
+
+    return user;
+  }
+
+  async addGlimpsesJob(authContext: AuthContextType): Promise<User> {
+    const jobId = `glimpse_${authContext.user.id}`;
+    const user = await this.setGlimpsesJobId(authContext.user.id, jobId);  
+    const jobScheduler = await this.glimpsesQueue.getJobScheduler(jobId);
+    const tz = authContext.user.timezone;    
+    const pattern = authContext.user.glimpsesJobPattern;
+    const data = {
+      userId: authContext.user.id,
+      workspaceId: authContext.workspaceId,
+    }
+    if (jobScheduler) {
+      // 3. Remove the existing repeatable job
+      await this.glimpsesQueue.removeJobScheduler(jobScheduler.key);
+      await this.glimpsesQueue.upsertJobScheduler(
+        jobId, // Use the same id as before
+        {
+          pattern,
+          tz
+        }, // Use the new cron pattern
+        {
+          name: 'generate',
+          data
+        } // Keep the same name and data
+      );
+      // 4. Add a new repeatable job with the updated pattern     
+      console.log(`Repeatable job ${jobId} updated with pattern: ${pattern}`);
+    } else {
+      console.log(`Repeatable job with id ${jobId} not found. Creating new job.`);
+      await this.glimpsesQueue.upsertJobScheduler(
+        jobId, // Use the same id as before
+        {
+          pattern,
+          immediately: true,
+          tz
+        }, // Use the new cron pattern
+        {
+          name: 'generate',
+          data
+        } // Keep the same name and data
+      );
+    }
     return user;
   }
 }

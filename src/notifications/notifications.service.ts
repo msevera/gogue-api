@@ -13,7 +13,7 @@ export type NotificationBuilderType<T> = {
   showWhenOnUrl: boolean;
   interruptionLevel: 'active' | 'passive' | 'time_sensitive' | 'critical',
   badgeType: 'None' | 'SetTo' | 'Increase',
-  badgeCount: number
+  badgeCount?: number
 }
 
 export type NotificationType<T> = {
