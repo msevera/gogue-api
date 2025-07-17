@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 class UpdateLectureCreationEventMessageDto {  
   title?: string;
@@ -12,9 +12,10 @@ class UpdateLectureCreationEventDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
+  @IsBoolean()
   @IsNotEmpty()
-  message?: UpdateLectureCreationEventMessageDto;
+  @IsOptional()
+  showNotification?: boolean;
 }
 
 class UpdateLectureContentAnnotationDto {

@@ -18,6 +18,8 @@ import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.service';
 import { SearchLecturesInputDto } from './dto/search-lectures.dto';
 import { UsersService } from 'src/users/users.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { LectureCreatedNotification } from './notifications/lecture-created.notification';
 
 @Injectable()
 export class LecturesService extends AbstractService<Lecture> {
@@ -29,7 +31,8 @@ export class LecturesService extends AbstractService<Lecture> {
     private readonly embeddingsService: EmbeddingsService,
     private readonly lectureMetadataService: LectureMetadataService,
     private readonly usersService: UsersService,
-    @Inject('KAFKA_PRODUCER') private client: ClientProxy
+    @Inject('KAFKA_PRODUCER') private client: ClientProxy,
+    private readonly notificationsService: NotificationsService
   ) {
     super(lecturesRepository);
   }
@@ -72,6 +75,23 @@ export class LecturesService extends AbstractService<Lecture> {
     return resource;
   }
 
+  async findOnePendingShowNotification(
+    authContext: AuthContextType | false,
+  ) {
+    const resource = await this.lecturesRepository.findOnePendingShowNotification(authContext);
+    return resource;
+  }
+
+  async setPendingLectureShowNotificationAsDone(authContext: AuthContextType, id: string) {
+    const lecture = await this.lecturesRepository.findOne(authContext, { id });
+    return this.lecturesRepository.updateOne(authContext, { id }, {
+      creationEvent: {
+        ...lecture.creationEvent,
+        showNotification: false
+      },
+    });
+  }
+
   async find(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
     return this.lecturesRepository.find(authContext, input, pagination);
   }
@@ -98,21 +118,7 @@ export class LecturesService extends AbstractService<Lecture> {
     return this.lecturesRepository.findRecommended(authContext, pagination);
   }
 
-  async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {
-    // Testing purposes
-    // setTimeout(() => {
-    //   const fn = async () => {
-    //     const lecture = await this.lecturesRepository.findOne(authContext, { id: '686f5f4d02b4bcdeea1817af' });
-    //     await this.pubSubService.publish<Lecture>(LectureCreatingTopic, {
-    //       ...lecture,
-    //       creationEvent: {
-    //         name: 'DONE'
-    //       },
-    //     });
-    //   }
-
-    //   fn();
-    // }, 5000);
+  async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {  
     const { duration, input } = lectureAgentInput;
     const thread_id = `lectures-${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
 
@@ -124,7 +130,8 @@ export class LecturesService extends AbstractService<Lecture> {
       emoji: '',
       sections: [],
       creationEvent: {
-        name: 'INIT'
+        name: 'INIT',
+        showNotification: true
       },
     });
 
@@ -212,7 +219,8 @@ export class LecturesService extends AbstractService<Lecture> {
       aligners,
       image,
       creationEvent: {
-        name: 'DONE'
+        name: 'DONE',
+        showNotification: true
       },
     });
 
@@ -225,5 +233,17 @@ export class LecturesService extends AbstractService<Lecture> {
     await this.lectureMetadataService.addToLibrary(authContext, lecture.id);
 
     await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
+    await this.notificationsService.sendNotification(LectureCreatedNotification, authContext, lecture);
+  }
+
+  async markAsReady(authContext: AuthContextType, id: string, state: string, showNotification: boolean) {
+    const lecture = await this.lecturesRepository.updateOne(authContext, { id }, {
+      creationEvent: {
+        name: state,
+        showNotification: showNotification
+      },
+    });
+    await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
+    return lecture;
   }
 } 

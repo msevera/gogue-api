@@ -1,21 +1,22 @@
 import { NotificationType } from "src/notifications/notifications.service";
+import { Glimpse } from "../entities/glimpse.entity";
+const removeMd = require('remove-markdown');
 
-export const GlimpsesReadyNotification: NotificationType<null> = {
+export const GlimpsesReadyNotification: NotificationType<Glimpse> = {
   type: 'glimpses_ready',
-  builder: (authContext, data: null) => {
+  builder: (authContext, data: Glimpse) => {
     return {
       type: 'glimpses_ready',
       authContexts: [{
         userId: authContext.user.id,
         workspaceId: authContext.workspaceId
       }],
-      title: 'Check your glimpses',
-      message: 'Glimpses are ready',
+      title: 'Gogue',
+      message: removeMd(data.content),
       url: '/glimpses',
       showWhenOnUrl: true,
-      interruptionLevel: 'passive',
-      badgeType: 'SetTo',
-      badgeCount: 1
+      interruptionLevel: 'active',
+      badgeType: 'None'     
     }
   }
 }

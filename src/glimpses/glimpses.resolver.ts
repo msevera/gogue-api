@@ -5,20 +5,20 @@ import { GlimpseStatus } from './entities/glimpse-status.entity';
 import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
 import { GlimpseStatusUpdatedTopic } from './topics/glimpse-status-updated.topic';
 import { PubSubService } from 'src/pubsub/pubsub.service';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import { AuthContext, AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
 import { GlimpsesCursorDto } from './dto/glimpses-cursor.dto';
 import { SetGlimpseViewedInputDto } from './dto/set-glimpse-viewed.dto';
+import { GlimpsesReadyNotification } from './notifications/glimpses-ready.notification';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Resolver(() => Glimpse)
 export class GlimpsesResolver {
   constructor(
     private readonly glimpsesService: GlimpsesService,
     private readonly pubSubService: PubSubService,
-    @InjectQueue('glimpses') private glimpsesQueue: Queue
+    private readonly notificationsService: NotificationsService
   ) { }
 
   @CustomSubscription<GlimpsesResolver, GlimpseStatus>(
@@ -26,13 +26,6 @@ export class GlimpsesResolver {
   )
   glimpseStatusUpdated() {
     return this.pubSubService.subscribe(GlimpseStatusUpdatedTopic);
-  }
-
-  @Auth(Role.CONSUMER)
-  @Mutation(() => Boolean)
-  async generateGlimpses(@AuthContext() authContext: AuthContextType) {
-    await this.glimpsesService.callAgent(authContext)
-    return true;
   }
 
   @Auth(Role.CONSUMER)
@@ -60,4 +53,20 @@ export class GlimpsesResolver {
   ) {
     return this.glimpsesService.checkGlimpseStatus(authContext);
   }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => Boolean, { name: 'generateGlimpses' })
+  async generateGlimpses(@AuthContext() authContext: AuthContextType) {
+    await this.glimpsesService.callAgent(authContext)
+    return true;
+  }
+
+  // @Auth(Role.CONSUMER)
+  // @Mutation(() => Boolean, { name: 'testGlimpsesNotification' })
+  // async testGlimpsesNotification(@AuthContext() authContext: AuthContextType) {
+  //   const lastGlimpses = await this.findLatest(authContext);
+  //   const [firstNewGlimpse] = lastGlimpses.items;
+  //   await this.notificationsService.sendNotification(GlimpsesReadyNotification, authContext, firstNewGlimpse);
+  //   return true;
+  // }
 }

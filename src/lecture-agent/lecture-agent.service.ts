@@ -153,7 +153,8 @@ export class LectureAgentService {
     const normalizingTopicEvent = 'NORMALIZING_TOPIC';
     await this.lecturesService.updateOne(authContext, lectureId, {
       creationEvent: {
-        name: normalizingTopicEvent
+        name: normalizingTopicEvent,
+        showNotification: true
       }
     });
 
@@ -197,7 +198,8 @@ export class LectureAgentService {
       emoji,
       languageCode,
       creationEvent: {
-        name: generatingPlanEvent
+        name: generatingPlanEvent,
+        showNotification: true
       }
     });
 
@@ -257,6 +259,7 @@ export class LectureAgentService {
       sections: plan,
       creationEvent: {
         name: generatingContentEvent,
+        showNotification: true
       }
     });
 
@@ -320,6 +323,7 @@ export class LectureAgentService {
       sections: plan,
       creationEvent: {
         name: generatingOverviewEvent,
+        showNotification: true
       }
     });
 
@@ -358,6 +362,7 @@ export class LectureAgentService {
       sections: plan,
       creationEvent: {
         name: generatingCategoriesEvent,
+        showNotification: true
       }
     });
 
@@ -422,6 +427,7 @@ export class LectureAgentService {
           })),
         creationEvent: {
           name: finalizingEvent,
+          showNotification: true
         }
       });
 

@@ -15,9 +15,9 @@ export class GlimpseAnnotation {
   @Prop({ required: true })
   endIndex: number;
 
-  @Field(() => String)
-  @Prop({ required: true })
-  title: string;
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  title?: string;
 
   @Field(() => String)
   @Prop({ required: true })

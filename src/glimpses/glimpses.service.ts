@@ -8,7 +8,6 @@ import { CreateGlimpseDto } from './dto/create-glimpse.dto';
 import { PubSubService } from 'src/pubsub/pubsub.service';
 import { GlimpsesAgentService } from './glimpses-agent.service';
 import { GlimpsesStatusRepository } from './glimpses-status.repository';
-import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { SortOrder } from '@app/common/database/options';
 import { GlimpseStatusUpdatedTopic } from './topics/glimpse-status-updated.topic';
 import { GlimpseStatus } from './entities/glimpse-status.entity';
@@ -127,7 +126,9 @@ export class GlimpsesService extends AbstractService<Glimpse> {
         }
       }
 
-      await this.notificationsService.sendNotification(GlimpsesReadyNotification, authContext, null);
+      const lastGlimpses = await this.findLatest(authContext);
+      const [firstNewGlimpse] = lastGlimpses.items;
+      await this.notificationsService.sendNotification(GlimpsesReadyNotification, authContext, firstNewGlimpse);
     } catch (error) {
       console.log('CallAgent error', error)
     }

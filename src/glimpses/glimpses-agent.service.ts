@@ -67,7 +67,7 @@ export class GlimpsesAgentService {
     @Inject(forwardRef(() => GlimpsesService))
     private readonly glimpsesService: GlimpsesService
   ) {
-    this.maxGlimpses = 3;
+    this.maxGlimpses = 10;
     const modelSettings = {
       model: 'gpt-4.1',
       temperature: 0,

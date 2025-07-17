@@ -20,6 +20,9 @@ import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.se
 import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
 import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { SearchLecturesInputDto } from './dto/search-lectures.dto';
+import { GlimpsesReadyNotification } from 'src/glimpses/notifications/glimpses-ready.notification';
+import { LectureCreatedNotification } from './notifications/lecture-created.notification';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 
 
@@ -49,7 +52,8 @@ export class LecturesResolver {
   constructor(
     private readonly lecturesService: LecturesService,
     private readonly pubSubService: PubSubService,
-    private readonly lectureMetadataService: LectureMetadataService
+    private readonly lectureMetadataService: LectureMetadataService,
+    private readonly notificationsService: NotificationsService
   ) { }
 
   @ResolveField('metadata', () => LectureMetadata)
@@ -99,7 +103,7 @@ export class LecturesResolver {
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.lecturesService.findRecentlyPlayed(authContext, pagination);    
+    return this.lecturesService.findRecentlyPlayed(authContext, pagination);
   }
 
   @Auth(Role.CONSUMER)
@@ -108,7 +112,7 @@ export class LecturesResolver {
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.lecturesService.findRecommended(authContext, pagination);    
+    return this.lecturesService.findRecommended(authContext, pagination);
   }
 
   @Auth(Role.CONSUMER)
@@ -117,6 +121,25 @@ export class LecturesResolver {
     @AuthContext() authContext: AuthContextType
   ) {
     const lecture = await this.lecturesService.findOnePending(authContext);
+    return lecture;
+  }
+
+  @Auth(Role.CONSUMER)
+  @Query(() => Lecture, { name: 'pendingLectureShowNotification', nullable: true })
+  async pendingLectureShowNotification(
+    @AuthContext() authContext: AuthContextType
+  ) {
+    const lecture = await this.lecturesService.findOnePendingShowNotification(authContext);
+    return lecture;
+  }
+
+  @Auth(Role.CONSUMER)
+  @Mutation(() => Lecture, { name: 'setPendingLectureShowNotificationAsDone' })
+  async setPendingLectureShowNotificationAsDone(
+    @Args('id', { type: () => ID }) id: string,
+    @AuthContext() authContext: AuthContextType
+  ) {
+    const lecture = await this.lecturesService.setPendingLectureShowNotificationAsDone(authContext, id);
     return lecture;
   }
 
@@ -196,6 +219,27 @@ export class LecturesResolver {
     await this.lecturesService.generateAudio(authContext, id);
     return true;
   }
+
+  // @Auth(Role.CONSUMER)
+  // @Mutation(() => Lecture, { name: 'markLectureAsReady' })
+  // async markAsReady(
+  //   @Args('id', { type: () => ID }) id: string,
+  //   @Args('state', { type: () => String }) state: string,
+  //   @Args('showNotification', { type: () => Boolean, nullable: true }) showNotification: boolean,
+  //   @AuthContext() authContext: AuthContextType
+  // ) {
+  //   const lecture = await this.lecturesService.markAsReady(authContext, id, state, showNotification);
+  //   return lecture;
+  // }
+
+  // @Auth(Role.CONSUMER)
+  // @Mutation(() => Boolean, { name: 'testLectureNotification' })
+  // async testLectureNotification(@AuthContext() authContext: AuthContextType, @Args('id', { type: () => ID }) id: string) {
+  //   const lecture = await this.lecturesService.findOnePublic(authContext, id);
+   
+  //   await this.notificationsService.sendNotification(LectureCreatedNotification, authContext, lecture);
+  //   return true;
+  // }
 
   @CustomSubscription<LecturesResolver, Lecture>(
     LectureCreatingTopic

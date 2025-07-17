@@ -12,6 +12,7 @@ import { LectureTTSController } from './lectures.controller';
 import { EmbeddingsModule } from '../embeddings/embeddings.module';
 import { CategoriesModule } from '../categories/categories.module';
 import { LectureMetadataModule } from 'src/lecture-metadata/lecture-metadata.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { LectureMetadataModule } from 'src/lecture-metadata/lecture-metadata.mod
     KafkaModule,   
     EmbeddingsModule,
     CategoriesModule,
-    LectureMetadataModule
+    LectureMetadataModule,
+    NotificationsModule
   ],
   controllers: [LectureTTSController],
   providers: [LecturesResolver, LectureSectionResolver, LectureCategoryResolver, LecturesService, LecturesRepository],

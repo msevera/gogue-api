@@ -31,6 +31,17 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
     return resource;
   }
 
+  async findOnePendingShowNotification(
+    authContext: AuthContextType | false,
+  ) {
+    const resource = await this.findOne(authContext, {
+      // @ts-ignore
+      'creationEvent.showNotification': true
+    });
+
+    return resource;
+  }
+
   async find(
     authContext: AuthContextType,
     input: FindLecturesInputDto,
