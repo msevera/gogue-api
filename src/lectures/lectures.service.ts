@@ -64,7 +64,7 @@ export class LecturesService extends AbstractService<Lecture> {
     });
   }
 
-  async findOnePublic(authContext: AuthContextType, id: string) {
+  async findOnePublic(id: string) {
     return this.lecturesRepository.findOne(false, { id });
   }
 

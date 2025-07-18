@@ -1,14 +1,12 @@
 import { Args, Context, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { LecturesService } from './lectures.service';
 import { Lecture, LectureCategory, LectureSection } from './entities/lecture.entity';
-import { CreateLectureDto } from './dto/create-lecture.dto';
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { AuthContext } from '@app/common/decorators/auth-context.decorator';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
 import { LecturesCursorDto } from './dto/lectures-cursor.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
-
 import { CustomSubscription } from '@app/common/subscriptions/custom-subscription.decorator';
 import { PubSubService } from '../pubsub/pubsub.service';
 import { LectureCreatingTopic } from './topics/lecture-creating.topic';
@@ -20,11 +18,8 @@ import { LectureMetadataService } from 'src/lecture-metadata/lecture-metadata.se
 import { LectureMetadataStatus } from '@app/common/dtos/lecture-matadata-status.enum.dto';
 import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { SearchLecturesInputDto } from './dto/search-lectures.dto';
-import { GlimpsesReadyNotification } from 'src/glimpses/notifications/glimpses-ready.notification';
-import { LectureCreatedNotification } from './notifications/lecture-created.notification';
 import { NotificationsService } from 'src/notifications/notifications.service';
-
-
+import { SortOrder } from '@app/common/database/options';
 
 @Resolver(() => LectureSection)
 export class LectureSectionResolver {
@@ -112,7 +107,18 @@ export class LecturesResolver {
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
     @AuthContext() authContext: AuthContextType
   ) {
-    return this.lecturesService.findRecommended(authContext, pagination);
+    // return this.lecturesService.findRecommended(authContext, pagination);
+    return this.lecturesService.find(authContext, {
+      skipUserId: authContext.user.id,
+      creationEventName: 'DONE'
+    }, {
+      limit: 15,
+      sort: [{
+        // @ts-ignore
+        by: 'createdAt',
+        order: SortOrder.DESC
+      }]
+    });
   }
 
   @Auth(Role.CONSUMER)
@@ -143,13 +149,11 @@ export class LecturesResolver {
     return lecture;
   }
 
-  @Auth(Role.CONSUMER)
   @Query(() => Lecture, { name: 'lecture', nullable: true })
   async findOne(
-    @Args('id', { type: () => ID }) id: string,
-    @AuthContext() authContext: AuthContextType
+    @Args('id', { type: () => ID }) id: string
   ) {
-    return this.lecturesService.findOnePublic(authContext, id);
+    return this.lecturesService.findOnePublic(id);
   }
 
   @Auth(Role.CONSUMER)
@@ -236,7 +240,7 @@ export class LecturesResolver {
   // @Mutation(() => Boolean, { name: 'testLectureNotification' })
   // async testLectureNotification(@AuthContext() authContext: AuthContextType, @Args('id', { type: () => ID }) id: string) {
   //   const lecture = await this.lecturesService.findOnePublic(authContext, id);
-   
+
   //   await this.notificationsService.sendNotification(LectureCreatedNotification, authContext, lecture);
   //   return true;
   // }
