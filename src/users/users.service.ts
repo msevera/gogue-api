@@ -112,7 +112,7 @@ export class UsersService extends AbstractService<User> {
     return user;
   }
 
-  async addGlimpsesJob(authContext: AuthContextType): Promise<User> {
+  async upsertGlimpsesJob(authContext: AuthContextType): Promise<User> {
     const jobId = `glimpse_${authContext.user.id}`;
     const user = await this.setGlimpsesJobId(authContext.user.id, jobId);  
     const jobScheduler = await this.glimpsesQueue.getJobScheduler(jobId);

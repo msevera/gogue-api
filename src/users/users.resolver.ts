@@ -45,44 +45,14 @@ export class UsersResolver {
     return this.usersService.setTimezone(authContext.user.id, input);
   }
 
-  async updateRepeatableJob(queue: Queue, jobId: string, newPattern: string) {
-    // 1. Get the repeatable jobs
-    const jobScheduler = await queue.getJobScheduler(jobId);
-
-    if (jobScheduler) {
-      // 3. Remove the existing repeatable job
-      await queue.removeJobScheduler(jobScheduler.key);
-      await queue.upsertJobScheduler(
-        jobId, // Use the same id as before
-        {
-          pattern: newPattern,
-        }, // Use the new cron pattern
-        {
-          name: 'generate',
-          data: {
-            userId: '686e6908ae4f642291a7c883',
-            workspaceId: '686e6908ae4f642291a7c884',
-          }
-        } // Keep the same name and data
-      );
-      // 4. Add a new repeatable job with the updated pattern     
-      console.log(`Repeatable job ${jobId} updated with pattern: ${newPattern}`);
-    } else {
-      console.log(`Repeatable job with id ${jobId} not found. Creating new job.`);
-      await queue.upsertJobScheduler(
-        jobId, // Use the same id as before
-        {
-          pattern: newPattern,
-          immediately: true,
-        }, // Use the new cron pattern
-        {
-          name: 'generate',
-          data: {
-            userId: '686e6908ae4f642291a7c883',
-            workspaceId: '686e6908ae4f642291a7c884',
-          }
-        } // Keep the same name and data
-      );
+  @Mutation(() => Boolean, { name: 'upsertGlimpsesJob' })
+  async upsertGlimpsesJob(@Args('id', { type: () => ID }) id: string) {
+    const user = await this.usersService.findOne(null, id);
+    const authContext: AuthContextType = {
+      user,
+      workspaceId: user.workspaces[0].workspaceId
     }
+    this.usersService.upsertGlimpsesJob(authContext);
+    return true;
   }
 }

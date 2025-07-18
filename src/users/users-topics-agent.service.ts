@@ -119,7 +119,7 @@ export class UsersTopicsAgentService {
       chunk: {}
     });
 
-    await this.usersService.addGlimpsesJob(authContext);
+    await this.usersService.upsertGlimpsesJob(authContext);
 
     return { chatMessages: [new AIMessage(result.content as string)] };
   }

@@ -10,6 +10,8 @@ import { GlimpsesService } from './glimpses.service';
 import { prompts as glimpsesPrompt } from './prompts/glimpses';
 import { prompts as queriesPrompt } from './prompts/queries';
 import { responseSchema as queriesAgentResponseSchema } from './schemas/queries-agent';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { GlimpsesReadyNotification } from './notifications/glimpses-ready.notification';
 
 class ContentAnnotation {
   startIndex: number;
@@ -65,7 +67,8 @@ export class GlimpsesAgentService {
   constructor(
     private configService: ConfigService,
     @Inject(forwardRef(() => GlimpsesService))
-    private readonly glimpsesService: GlimpsesService
+    private readonly glimpsesService: GlimpsesService,
+    private readonly notificationsService: NotificationsService
   ) {
     this.maxGlimpses = 10;
     const modelSettings = {
@@ -194,6 +197,10 @@ export class GlimpsesAgentService {
       authContext: AuthContextType;
     };
 
+    if (plan?.length === 0) {
+      return {}
+    }
+
     const systemPrompt =
       SystemMessagePromptTemplate.fromTemplate(queriesPrompt);
 
@@ -226,14 +233,24 @@ export class GlimpsesAgentService {
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
+    const { plan } = state;
     const { authContext } = config.configurable as {
       authContext: AuthContextType;
     };
+
+    if (plan?.length === 0) {
+      return {}
+    }
 
     await this.glimpsesService.updateGlimpseStatus(authContext, 'NEW');
     await dispatchCustomEvent('GLIMPSE_STATUS_UPDATED', {
       chunk: {}
     });
+    const lastNotViewedGlimpse = await this.glimpsesService.findLatest(authContext, 1, false);
+    const [firstNewGlimpse] = lastNotViewedGlimpse.items;
+    if (firstNewGlimpse) {
+      await this.notificationsService.sendNotification(GlimpsesReadyNotification, authContext, firstNewGlimpse);
+    }
 
     return {}
   }
