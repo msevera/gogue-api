@@ -106,7 +106,7 @@ export class LecturesResolver {
     @AuthContext() authContext: AuthContextType
   ) {
     // return this.lecturesService.findRecommended(authContext, pagination);
-    return this.lecturesService.find(authContext, {
+    return this.lecturesService.find({
       skipUserId: authContext.user.id,
       creationEventName: 'DONE'
     }, {
