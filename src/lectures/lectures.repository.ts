@@ -43,7 +43,7 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
   }
 
   async find(
-    authContext: AuthContextType,
+    authContext: AuthContextType | false,
     input: FindLecturesInputDto,
     pagination?: PaginationDto<Lecture>
   ) {

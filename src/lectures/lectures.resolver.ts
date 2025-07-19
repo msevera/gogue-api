@@ -60,14 +60,12 @@ export class LecturesResolver {
     return dataLoaders.lectureMetadata.findOneWithAuth(authContext, item.id.toString());
   }
 
-  @Auth(Role.CONSUMER)
   @Query(() => LecturesCursorDto, { name: 'lectures' })
   async find(
     @Args('pagination', { nullable: true }) pagination: PaginationDto<Lecture>,
-    @Args('input', { nullable: true }) input: FindLecturesInputDto,
-    @AuthContext() authContext: AuthContextType
+    @Args('input', { nullable: true }) input: FindLecturesInputDto
   ) {
-    return this.lecturesService.find(authContext, {
+    return this.lecturesService.find({
       ...input,
       creationEventName: 'DONE'
     }, pagination);

@@ -92,8 +92,8 @@ export class LecturesService extends AbstractService<Lecture> {
     });
   }
 
-  async find(authContext: AuthContextType, input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
-    return this.lecturesRepository.find(authContext, input, pagination);
+  async find(input: FindLecturesInputDto, pagination?: PaginationDto<Lecture>) {
+    return this.lecturesRepository.find(false, input, pagination);
   }
 
   async findSearch(authContext: AuthContextType, input: SearchLecturesInputDto, pagination?: PaginationDto<Lecture>) {
