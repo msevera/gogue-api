@@ -105,6 +105,10 @@ export class Image {
 
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
+  png?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
   folder?: string;
 
   @Field(() => Number, { nullable: true })
