@@ -44,9 +44,9 @@ export class User extends CacheEntity {
   @Prop()
   firstName: string;
 
-  @Field()
-  @Prop()
-  lastName: string;
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  lastName?: string;
 
   @Field()
   @Prop()
