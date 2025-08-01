@@ -11,7 +11,7 @@ steps:
         gcloud secrets versions access latest \
           --secret=gg-api-env-$_ENVIRONMENT \
           --format='get(payload.data)' | base64 --decode > .env
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:528.0.0'
     entrypoint: 'bash'
     args:
       - '-c'
