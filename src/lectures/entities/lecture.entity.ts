@@ -58,6 +58,33 @@ export class LectureSection {
 
 @Schema({ _id: false })
 @ObjectType()
+export class LectureResearchSection {
+  @Field(() => String)
+  @Prop({ required: true })
+  title: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  description?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  category?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  content?: string;
+
+  @Field(() => Boolean)
+  hasContent?: boolean;
+
+  @Field(() => [LectureSectionAnnotation], { nullable: true })
+  @Prop({ required: false, type: [LectureSectionAnnotation] })
+  annotations?: LectureSectionAnnotation[];
+}
+
+@Schema({ _id: false })
+@ObjectType()
 export class Audio {
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
@@ -145,10 +172,6 @@ export class LectureCategory {
 @CustomSchema()
 @ObjectType()
 export class Lecture extends WorkspaceEntity {
-  @Field(() => Number)
-  @Prop({ required: true })
-  duration: number;
-
   @Field(() => String)
   @Prop({ required: true })
   input: string;
@@ -221,6 +244,14 @@ export class Lecture extends WorkspaceEntity {
   @Field(() => String, { nullable: true })
   @Prop({ required: false, default: 'en' })
   languageCode?: string;
+
+  @Field(() => [LectureResearchSection], { nullable: true })
+  @Prop({ type: [LectureResearchSection] })
+  research?: LectureResearchSection[];
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  voiceInstructions?: string;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

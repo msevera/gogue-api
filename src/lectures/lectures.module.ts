@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Lecture, LectureEntity } from './entities/lecture.entity';
 import { LecturesService } from './lectures.service';
 import { LecturesRepository } from './lectures.repository';
-import { LectureCategoryResolver, LectureSectionResolver, LecturesResolver } from './lectures.resolver';
+import { LectureCategoryResolver, LectureResearchSectionResolver, LectureSectionResolver, LecturesResolver } from './lectures.resolver';
 import { UsersModule } from '../users/users.module';
 import { PubSubModule } from '../pubsub/pubsub.module';
 import { LectureAgentModule } from '../lecture-agent/lecture-agent.module';
@@ -27,7 +27,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     NotificationsModule
   ],
   controllers: [LectureTTSController],
-  providers: [LecturesResolver, LectureSectionResolver, LectureCategoryResolver, LecturesService, LecturesRepository],
+  providers: [LecturesResolver, LectureSectionResolver, LectureCategoryResolver, LecturesService, LecturesRepository, LectureResearchSectionResolver],
   exports: [MongooseModule, LecturesService, LecturesRepository]
 })
 export class LecturesModule {} 

@@ -8,13 +8,13 @@ import { ChatOpenAI } from '@langchain/openai';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { SystemMessagePromptTemplate } from '@langchain/core/prompts';
 import { prompt as normalizePrompt } from './prompts/normalize';
-import { prompt as planPrompt } from './prompts/plan';
-import { prompt as contentPrompt, promptIntro as contentIntroPrompt } from './prompts/content';
-import { prompt as overviewPrompt } from './prompts/overview';
+import { prompt as researchPlanPrompt } from './prompts/research-planner';
+import { prompt as researchContentPrompt } from './prompts/research-content';
+import { prompt as compileContentPrompt } from './prompts/compile-content';
 import { prompt as categoriesPrompt } from './prompts/categories';
-import { responseSchema as planAgentResponseSchema } from './schemas/plan-agent';
+import { responseSchema as researchPlannerAgentResponseSchema } from './schemas/research-planner-agent';
 import { responseSchema as normalizeAgentResponseSchema } from './schemas/normalize-agent';
-import { responseSchema as overviewAgentResponseSchema } from './schemas/overview-agent';
+import { responseSchema as compileContentAgentResponseSchema } from './schemas/compile-content-agent';
 import { responseSchema as categoriesAgentResponseSchema } from './schemas/categories-agent';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { LecturesService } from '../lectures/lectures.service';
@@ -28,18 +28,72 @@ class ContentAnnotation {
   url: string;
 }
 
-class PlanSection {
+class ResearchPlan {
   title: string;
-  duration: number;
-  content: string;
-  annotations: ContentAnnotation[];
-  overview: string;
+  description: string;
+  category: string;
+  content?: string;
+  annotations?: ContentAnnotation[];
 }
 
 class Category {
   name: string
   id: string
 }
+
+class Section {
+  title: string;
+  content: string;
+  overview: string;
+}
+
+function getRandomItem(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return undefined;
+  const idx = Math.floor(Math.random() * arr.length);
+  return arr[idx];
+}
+
+const introExamples = [
+  "Hello, Gogue here — your personal assistant, eager to help you explore...",
+  "Hey there, Gogue here and ready to explore your ideas together...",
+  "Hi there, Gogue here, eager to start our...",
+  "Welcome aboard. I’m Gogue, and I’m here to support you every step of the way...",
+  "It’s great to see you today, and I’m Gogue, ready to...",
+  "Delighted to connect with you — I’m Gogue, here to...",
+  "Thank you for joining me. I’m Gogue, and I’ll be guiding you...",
+  "Thrilled to have you here, and I’m Gogue, at your disposal for...",
+  "I’m excited about our discussion, and I’m Gogue, committed to making this lecture valuable for you...",
+  "At your service today — I’m Gogue, ready to provide insights...",
+  "Ready to get started with our journey, where I, Gogue, will be your companion for exploring...",
+  "Allow me to introduce myself. I’m Gogue, and I’m here to help you navigate through...",
+  "It’s a pleasure to meet you, as I’m Gogue, and I’ll be assisting you throughout our...",
+]
+
+const ctaExamples = [
+  "Feel free to jump in and ask anything anytime by tapping the **Ask anything** field—and when inspiration strikes, tap *Add note* to jot it down!",
+  "Don’t hesitate to interrupt with your questions via the **Ask anything** field, and use the **Add note** button to capture your thoughts as we go.",
+  "You’re welcome to pop in questions at any moment by tapping the **Ask anything** field, and you can tap **Add note** whenever you want to save a note.",
+  "If you have questions, just tap the **Ask anything** field to interrupt me—and to keep track of ideas, hit the **Add note** button.",
+  "Anytime you need clarification, tap **Ask anything** to ask away, and when you want to record something, tap **Add note.**",
+  "Interrupt me with your questions at will by tapping the **Ask anything** field—and don’t forget, the **Add note** button is there for any quick notes you want to save.",
+  "Tap **Ask anything** whenever you’d like to chime in, and use **Add note** to keep your thoughts handy.",
+  "We can pause at any time for your questions—just tap **Ask anything**—and you can capture key points by tapping **Add note.**",
+  "Have a question? Tap **Ask anything** to jump right in, and tap **Add note** to record any important details.",
+  "Whenever something comes to mind, tap **Ask anything** to ask your question, and tap **Add note** to quickly jot down any notes.",
+]
+
+const outroExamples = [
+  "Thank you all for your attention today—I appreciate your time and look forward to seeing you in future lectures!",
+  "I’m grateful for your engagement and hope to welcome you back for our next session.",
+  "Thank you for listening so attentively. I can’t wait to see you at our upcoming lectures!",
+  "Many thanks for your attention today—see you in the next lecture!",
+  "I appreciate you joining me today and hope to see you again in future talks.",
+  "Thank you for being such a great audience. I look forward to our next lecture together!",
+  "Thanks for tuning in and for your thoughtful attention—hope to see you at the next one!",
+  "Your attention is much appreciated, and I can’t wait to share more with you in upcoming lectures.",
+  "Thank you for your time today. I hope to see you again in our future sessions!",
+  "I’m thankful for your engagement, and I look forward to having you with me in future lectures."
+]
 
 @Injectable()
 export class LectureAgentService {
@@ -50,18 +104,19 @@ export class LectureAgentService {
     languageCode: Annotation<string>(),
     title: Annotation<string>(),
     emoji: Annotation<string>(),
-    plan: Annotation<PlanSection[]>(),
+    researchPlan: Annotation<ResearchPlan[]>(),
     overview: Annotation<string>(),
-    sectionsOverview: Annotation<string[]>(),
-    categories: Annotation<Category[]>()
+    categories: Annotation<Category[]>(),
+    sections: Annotation<Section[]>(),
+    voiceInstructions: Annotation<string>()
   });
   private builder: any;
   private _graph: any;
-  private planModel: any;
-  normalizeModel: any;
-  contentModel: any;
-  overviewModel: any;
-  categoriesModel: any;
+  private normalizeModel: any;
+  private researchPlannerModel: any;
+  private researchContentModel: any;
+  private compileContentModel: any;
+  private categoriesModel: any;
 
   constructor(
     private configService: ConfigService,
@@ -84,19 +139,23 @@ export class LectureAgentService {
       }
     }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
-    this.planModel = new ChatOpenAI({
+    this.researchPlannerModel = new ChatOpenAI({
       ...modelSettings,
       modelKwargs: {
         text: {
-          format: planAgentResponseSchema
+          format: researchPlannerAgentResponseSchema
         }
       }
     }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
-    this.overviewModel = new ChatOpenAI({
+    this.researchContentModel = new ChatOpenAI({
+      ...modelSettings,
+    }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
+
+    this.compileContentModel = new ChatOpenAI({
       ...modelSettings,
       modelKwargs: {
-        response_format: overviewAgentResponseSchema
+        response_format: compileContentAgentResponseSchema
       }
     });
 
@@ -107,25 +166,18 @@ export class LectureAgentService {
       }
     });
 
-    this.contentModel = new ChatOpenAI({
-      ...modelSettings,
-    }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
-
     this.builder = new StateGraph(this.graphAnnotation)
       .addNode('normalizeNode', this.normalizeNode)
-      .addNode('planNode', this.planNode)
-      .addNode('contentNode', this.contentNode)
+      .addNode('researchPlannerNode', this.researchPlannerNode)
+      .addNode('researchContentNode', this.researchContentNode)
+      .addNode('compileContentNode', this.compileContentNode)
       .addNode('finalNode', this.finalNode)
-      .addNode('beforeExtractionNode', this.beforeExtractionNode)
-      .addNode('overviewNode', this.overviewNode)
       .addNode('categoriesNode', this.categoriesNode)
       .addEdge(START, 'normalizeNode')
-      .addEdge('normalizeNode', 'planNode')
-      .addConditionalEdges('planNode', this.routeToContentNode)
-      .addEdge('contentNode', 'planNode')
-      .addEdge('beforeExtractionNode', 'overviewNode')
-      .addEdge('beforeExtractionNode', 'categoriesNode')
-      .addEdge('overviewNode', 'finalNode')
+      .addEdge('normalizeNode', 'researchPlannerNode')
+      .addConditionalEdges('researchPlannerNode', this.routeToResearchNode)
+      .addEdge('researchContentNode', 'researchPlannerNode')
+      .addEdge('compileContentNode', 'categoriesNode')
       .addEdge('categoriesNode', 'finalNode')
       .addEdge('finalNode', END);
 
@@ -145,16 +197,17 @@ export class LectureAgentService {
     config?: RunnableConfig,
   ) => {
     const { input } = state;
-    const { authContext, lectureId } = config.configurable as {
+    const { authContext, lectureId, showNotification } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
+      showNotification: boolean;
     };
 
     const normalizingTopicEvent = 'NORMALIZING_TOPIC';
     await this.lecturesService.updateOne(authContext, lectureId, {
       creationEvent: {
         name: normalizingTopicEvent,
-        showNotification: true
+        showNotification
       }
     });
 
@@ -176,113 +229,93 @@ export class LectureAgentService {
     return { topic, title, emoji, languageCode: language_code };
   }
 
-  private planNode = async (
+  private researchPlannerNode = async (
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
-    const { emoji, topic, title, duration, languageCode } = state;
-    const { authContext, lectureId } = config.configurable as {
+    const { emoji, topic, title, languageCode } = state;
+    const { authContext, lectureId, showNotification } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
+      showNotification: boolean;
     };
 
-    let { plan } = state;
-    if (plan?.length > 0) {
-      return { plan };
+    let { researchPlan } = state;
+    if (researchPlan?.length > 0) {
+      return { researchPlan };
     }
 
-    const generatingPlanEvent = 'GENERATING_PLAN';
+    const researchingPlanEvent = 'RESEARCHING_PLAN';
     await this.lecturesService.updateOne(authContext, lectureId, {
       topic,
       title,
       emoji,
       languageCode,
       creationEvent: {
-        name: generatingPlanEvent,
-        showNotification: true
+        name: researchingPlanEvent,
+        showNotification
       }
     });
 
-    await dispatchCustomEvent(generatingPlanEvent, {
+    await dispatchCustomEvent(researchingPlanEvent, {
       chunk: {}
     });
 
     const systemPrompt =
-      SystemMessagePromptTemplate.fromTemplate(planPrompt);
+      SystemMessagePromptTemplate.fromTemplate(researchPlanPrompt);
 
     const prompt = await systemPrompt.invoke({
-      TOPIC: topic,
-      DURATION: duration.toString()
+      topic,
+      current_timestamp: new Date().toDateString()
     });
 
-    const result = await this.planModel.invoke([...prompt]);
-    const parsed = result.additional_kwargs.parsed;
-    plan = parsed.sections;
-
-    return { plan };
+    const result = await this.researchPlannerModel.invoke([...prompt]);
+    const { research_items } = result.additional_kwargs.parsed;
+    return { researchPlan: research_items };
   }
 
-  private routeToContentNode = (
+  private researchContentNode = async (
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
-    const { plan } = state;
-    const sectionWithoutContent = plan.find(section => !section.content);
-    if (sectionWithoutContent) {
-      return 'contentNode';
-    }
-
-    return 'beforeExtractionNode';
-  }
-
-
-  private contentNode = async (
-    state: typeof this.graphAnnotation.State,
-    config?: RunnableConfig,
-  ) => {
-    const { wordsPerMinute } = config.configurable as {
-      wordsPerMinute: number;
-    };
-    const { plan } = state;
-    const { authContext, lectureId } = config.configurable as {
+    const { researchPlan } = state;
+    const { authContext, lectureId, showNotification } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
+      showNotification: boolean;
     };
 
-    const isThereNoContent = plan.every(section => !section.content);
+    const sectionWithoutContent = researchPlan.find(section => !section.content);
+    const { title, description, category } = sectionWithoutContent;
 
-    const sectionWithoutContent = plan.find(section => !section.content);
-    const { title, overview, duration } = sectionWithoutContent;
-
-    const generatingContentEvent = 'GENERATING_CONTENT';
+    const researchingContentEvent = 'RESEARCHING_CONTENT';
     await this.lecturesService.updateOne(authContext, lectureId, {
-      sections: plan,
+      research: researchPlan,
       creationEvent: {
-        name: generatingContentEvent,
-        showNotification: true
+        name: researchingContentEvent,
+        showNotification
       }
     });
 
-    await dispatchCustomEvent(generatingContentEvent, {
+    await dispatchCustomEvent(researchingContentEvent, {
       chunk: {}
     });
 
     const systemPrompt =
-      SystemMessagePromptTemplate.fromTemplate(isThereNoContent ? contentIntroPrompt : contentPrompt);
+      SystemMessagePromptTemplate.fromTemplate(researchContentPrompt);
 
     const prompt = await systemPrompt.invoke({
-      SECTION_OVERVIEW: overview,
-      SECTION_DURATION: duration.toString(),
-      PREVIOUS_SECTIONS: JSON.stringify(plan),
-      WORDS_COUNT: duration * wordsPerMinute,
-      TODAYS_DATE: new Date().toLocaleDateString()
+      title,
+      description,
+      category,
+      current_timestamp: new Date().toDateString()
     });
 
-    const result = await this.contentModel.invoke([...prompt]);
+    const result = await this.researchContentModel.invoke([...prompt]);
     const [firstResult] = result.content;
 
     return {
-      plan: plan.map((section) => {
+      researchPlan: researchPlan.map((section) => {
         if (section.title === title) {
           return {
             ...section,
@@ -301,68 +334,90 @@ export class LectureAgentService {
     };
   }
 
-  private beforeExtractionNode = (
-    state: typeof this.graphAnnotation.State
-  ) => {
-    const { plan } = state;
-    return { plan }
-  }
-
-  private overviewNode = async (
+  private routeToResearchNode = (
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
-    const { plan, title, topic } = state;
-    const { authContext, lectureId } = config.configurable as {
+    const { researchPlan } = state;
+    const sectionWithoutContent = researchPlan.find(section => !section.content);
+    if (sectionWithoutContent) {
+      return 'researchContentNode';
+    }
+
+    return 'compileContentNode';
+  }
+
+
+  private compileContentNode = async (
+    state: typeof this.graphAnnotation.State,
+    config?: RunnableConfig,
+  ) => {
+    const { researchPlan, title, topic } = state;
+    const { authContext, lectureId, showNotification } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
+      showNotification: boolean;
     };
 
-    const generatingOverviewEvent = 'GENERATING_OVERVIEW';
+    const compilingContentEvent = 'COMPILING_CONTENT';
     await this.lecturesService.updateOne(authContext, lectureId, {
-      sections: plan,
+      research: researchPlan,
       creationEvent: {
-        name: generatingOverviewEvent,
-        showNotification: true
+        name: compilingContentEvent,
+        showNotification
       }
     });
-
-    await dispatchCustomEvent(generatingOverviewEvent, {
+    await dispatchCustomEvent(compilingContentEvent, {
       chunk: {}
     });
 
     const systemPrompt =
-      SystemMessagePromptTemplate.fromTemplate(overviewPrompt);
+      SystemMessagePromptTemplate.fromTemplate(compileContentPrompt);
+
 
     const prompt = await systemPrompt.invoke({
-      TOPIC: topic,
-      TITLE: title,
-      SECTIONS: plan.map(section => `<section_title>${section.title}</section_title>\n<section_text>${section.content}</section_text>`).join('\n')
+      title: title,
+      topic: topic,
+      researched_content: researchPlan.map(section => section.content).join('\n'),
+      current_timestamp: new Date().toDateString(),
+      intro_example: getRandomItem(introExamples),
+      cta_example: getRandomItem(ctaExamples),
+      outro_example: getRandomItem(outroExamples)
     });
 
-    const result = await this.overviewModel.invoke([...prompt]);
+    const result = await this.compileContentModel.invoke([...prompt]);
     const parsed = JSON.parse(result.content as string);
-    const { lecture_overview } = parsed;
+    const { overview, voice_instructions, sections } = parsed;
 
-    return { overview: lecture_overview };
+
+
+    return {
+      overview,
+      voiceInstructions: voice_instructions,
+      sections: sections.map(section => ({
+        title: section.title,
+        content: section.content,
+        overview: section.overview,
+      }))
+    };
   }
 
   private categoriesNode = async (
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
-    const { plan } = state;
-    const { authContext, lectureId } = config.configurable as {
+    const { sections } = state;
+    const { authContext, lectureId, showNotification } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
+      showNotification: boolean;
     };
 
     const generatingCategoriesEvent = 'GENERATING_CATEGORIES';
     const lecture = await this.lecturesService.updateOne(authContext, lectureId, {
-      sections: plan,
       creationEvent: {
         name: generatingCategoriesEvent,
-        showNotification: true
+        showNotification
       }
     });
 
@@ -376,11 +431,11 @@ export class LectureAgentService {
     const topCategories = await this.categoriesService.findByNameEmbeddings(lecture.topicEmbeddings);
 
     const prompt = await systemPrompt.invoke({
-      EXISTING_CATEGORIES: JSON.stringify(topCategories.map(category => ({
+      existing_categories: JSON.stringify(topCategories.map(category => ({
         name: category.name,
         id: category.id
       }))),
-      CONTENT: lecture.sections.map(section => section.content).join('\n'),
+      content: sections.map(section => section.content).join('\n'),
     });
 
     const result = await this.categoriesModel.invoke([...prompt]);
@@ -401,33 +456,36 @@ export class LectureAgentService {
     config?: RunnableConfig,
   ) => {
     try {
-      const { overview, plan, categories } = state;
-      const { authContext, lectureId } = config.configurable as {
+      const { overview, sections, voiceInstructions, categories } = state;
+      const { authContext, lectureId, showNotification } = config.configurable as {
         authContext: AuthContextType;
         lectureId: string;
+        showNotification: boolean;
       };
 
       const finalizingEvent = 'FINALIZING';
 
       const newCategories = await this.categoriesService.createMany(
         categories
-          .filter(category => category.id === 'NEW')
+          .filter(category => category.id === null)
           .map(category => ({
             name: category.name,
           }))
       );
 
-      const existingCategories = categories.filter(category => category.id !== 'NEW');
+      const existingCategories = categories.filter(category => category.id !== null);
 
       await this.lecturesService.updateOne(authContext, lectureId, {
         overview,
+        sections,
+        voiceInstructions,
         categories: [...existingCategories, ...newCategories]
           .map(category => ({
             categoryId: category.id
           })),
         creationEvent: {
           name: finalizingEvent,
-          showNotification: true
+          showNotification
         }
       });
 

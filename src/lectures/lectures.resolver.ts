@@ -1,6 +1,6 @@
 import { Args, Context, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { LecturesService } from './lectures.service';
-import { Lecture, LectureCategory, LectureSection } from './entities/lecture.entity';
+import { Lecture, LectureCategory, LectureResearchSection, LectureSection } from './entities/lecture.entity';
 import { Auth } from '@app/common/decorators/auth.decorator';
 import { AuthContext } from '@app/common/decorators/auth-context.decorator';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
@@ -20,12 +20,23 @@ import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { SearchLecturesInputDto } from './dto/search-lectures.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { SortOrder } from '@app/common/database/options';
+import { UsersService } from '../users/users.service';
 
 @Resolver(() => LectureSection)
 export class LectureSectionResolver {
   @ResolveField('hasContent', () => Boolean)
   async hasContent(
     @Parent() section: LectureSection,
+  ) {
+    return section?.content?.length > 0;
+  }
+}
+
+@Resolver(() => LectureResearchSection)
+export class LectureResearchSectionResolver {
+  @ResolveField('hasContent', () => Boolean)
+  async hasContent(
+    @Parent() section: LectureResearchSection,
   ) {
     return section?.content?.length > 0;
   }
@@ -48,7 +59,8 @@ export class LecturesResolver {
     private readonly lecturesService: LecturesService,
     private readonly pubSubService: PubSubService,
     private readonly lectureMetadataService: LectureMetadataService,
-    private readonly notificationsService: NotificationsService
+    private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService
   ) { }
 
   @ResolveField('metadata', () => LectureMetadata)
@@ -219,6 +231,21 @@ export class LecturesResolver {
     @AuthContext() authContext: AuthContextType
   ) {
     await this.lecturesService.generateAudio(authContext, id);
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'recreateLectureAsync' })
+  async recreateLectureContent(
+    @Args('id', { type: () => ID }) id: string,
+    // @AuthContext() authContext: AuthContextType
+  ) {
+    const lecture = await this.lecturesService.findOne(false, id);
+    const user = await this.usersService.findOne(null, lecture.userId, { throwErrorIfNotFound: false });
+    const authContext = {
+      user,
+      workspaceId: lecture.workspaceId
+    };
+    this.lecturesService.recreateLectureContent(authContext, id);
     return true;
   }
 
