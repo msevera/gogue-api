@@ -5,33 +5,42 @@ export const responseSchema = {
     "strict": true,
     "schema": {
       "type": "object",
-      "required": [
-        "categories"
-      ],
       "properties": {
         "categories": {
           "type": "array",
+          "description": "Categories to categorize this lecture",
           "items": {
             "type": "object",
+            "properties": {
+              "category_name": {
+                "type": "string",
+                "description": "Category name. Must be one or two words.",
+                "pattern": "^\\w+(?:\\s\\w+)?$"
+              },
+              "category_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "description": "Existing category id."
+                  },
+                  {
+                    "type": "null",
+                    "description": "If no category id is provided."
+                  }
+                ]
+              }
+            },
             "required": [
               "category_name",
               "category_id"
             ],
-            "properties": {
-              "category_name": {
-                "type": "string",
-                "description": "Category name"
-              },
-              "category_id": {
-                "type": "string",
-                "description": "Existing category id. If the category is not found, use NEW keyword as a category id."
-              }
-            },
             "additionalProperties": false
-          },
-          "description": "Categories to categorize this lecture"
+          }
         }
       },
+      "required": [
+        "categories"
+      ],
       "additionalProperties": false
     }
   }

@@ -58,6 +58,28 @@ export class UpdateLectureSectionDto {
   annotations?: UpdateLectureContentAnnotationDto[];
 }
 
+export class UpdateLectureResearchDto {  
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @IsString()
+  @IsOptional()
+  category: string;
+
+  @IsString()
+  @IsOptional()
+  content?: string;
+
+  @IsArray()
+  @IsOptional()
+  annotations?: UpdateLectureContentAnnotationDto[];
+}
+
 class UpdateLectureCategoryDto {
   @IsString()
   @IsNotEmpty()
@@ -88,9 +110,17 @@ export class UpdateLectureDto {
   @IsArray()
   @IsNotEmpty()
   sections?: UpdateLectureSectionDto[];  
+
+  @IsArray()
+  @IsNotEmpty()
+  research?: UpdateLectureResearchDto[];  
   
   @IsNotEmpty()
   creationEvent: UpdateLectureCreationEventDto;
 
   categories?: UpdateLectureCategoryDto[];
+
+  @IsString()
+  @IsOptional()
+  voiceInstructions?: string;
 } 

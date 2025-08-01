@@ -5,7 +5,7 @@ import { Prop } from '@nestjs/mongoose';
 @ObjectType()
 export class LectureCreationEvent {
   @Field()
-  @Prop({ enum: ['INIT', 'NORMALIZING_TOPIC', 'GENERATING_PLAN', 'GENERATING_CONTENT', 'GENERATING_OVERVIEW', 'GENERATING_CATEGORIES', 'FINALIZING', 'DONE'] })
+  @Prop({ enum: ['INIT', 'NORMALIZING_TOPIC', 'RESEARCHING_PLAN', 'RESEARCHING_CONTENT', 'COMPILING_CONTENT', 'GENERATING_CATEGORIES', 'FINALIZING', 'DONE'] })
   name: string;
 
   @Field(() => Boolean, { nullable: true })

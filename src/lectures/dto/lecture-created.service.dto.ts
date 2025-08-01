@@ -41,4 +41,8 @@ export class LectureCreatedServiceDto {
   @Type(() => LectureSectionDto)
   @IsNotEmpty()
   sections: LectureSectionDto[];
+
+  @IsString()
+  @IsOptional()
+  voiceInstructions?: string;
 }

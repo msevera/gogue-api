@@ -25,19 +25,16 @@ export class LectureAgentController {
     @AuthContext() authContext: AuthContextType,
   ): Promise<Observable<MessageEvent>> {
 
-    const { duration, input } = lectureAgentInput;
+    const { input } = lectureAgentInput;
     const thread_id = this.getThreadId(authContext);
     const eventStream = await this.lectureAgentService.graph.streamEvents(
       {
-        duration,
         input
       },
       {
         configurable: {
           thread_id,
-          authContext,
-          wordsPerMinute: 160
-          // wordsPerMinute: 5
+          authContext
         },
         version: 'v2',
       },

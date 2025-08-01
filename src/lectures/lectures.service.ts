@@ -20,6 +20,7 @@ import { SearchLecturesInputDto } from './dto/search-lectures.dto';
 import { UsersService } from 'src/users/users.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { LectureCreatedNotification } from './notifications/lecture-created.notification';
+import { LectureRecreatedNotification } from './notifications/lecture-recreated.notification';
 
 @Injectable()
 export class LecturesService extends AbstractService<Lecture> {
@@ -39,7 +40,6 @@ export class LecturesService extends AbstractService<Lecture> {
 
   async createOne(authContext: AuthContextType, input: CreateLectureDto) {
     return this.lecturesRepository.create(authContext, {
-      duration: input.duration,
       input: input.input,
       topic: input.topic,
       title: input.title,
@@ -118,17 +118,17 @@ export class LecturesService extends AbstractService<Lecture> {
     return this.lecturesRepository.findRecommended(authContext, pagination);
   }
 
-  async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {  
-    const { duration, input } = lectureAgentInput;
+  async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {
+    const { input } = lectureAgentInput;
     const thread_id = `lectures-${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
 
     let lecture = await this.lecturesRepository.create(authContext, {
-      duration,
       input,
       topic: '',
       title: '',
       emoji: '',
       sections: [],
+      research: [],
       creationEvent: {
         name: 'INIT',
         showNotification: true
@@ -139,16 +139,14 @@ export class LecturesService extends AbstractService<Lecture> {
       await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
       const eventStream = await this.lectureAgentService.graph.streamEvents(
         {
-          duration,
           input
         },
         {
           configurable: {
             thread_id,
             authContext,
-            wordsPerMinute: 160,
-            // wordsPerMinute: 5,
-            lectureId: lecture.id
+            lectureId: lecture.id,
+            showNotification: true
           },
           version: 'v2',
         },
@@ -177,9 +175,9 @@ export class LecturesService extends AbstractService<Lecture> {
                 workspaceId: lecture.workspaceId,
                 sections: lecture.sections.map(section => ({
                   title: section.title,
-                  content: section.content,
-                  annotations: section.annotations
-                }))
+                  content: section.content
+                })),
+                voiceInstructions: lecture.voiceInstructions
               });
             }
           }
@@ -206,10 +204,70 @@ export class LecturesService extends AbstractService<Lecture> {
       workspaceId: lecture.workspaceId,
       sections: lecture.sections.map(section => ({
         title: section.title,
-        content: section.content,
-        annotations: section.annotations
-      }))
+        content: section.content
+      })),
+      voiceInstructions: lecture.voiceInstructions
     });
+  }
+
+  async recreateLectureContent(authContext: AuthContextType, id: string) {
+    const thread_id = `lectures-${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
+    let lecture = await this.lecturesRepository.findOne(authContext, { id });
+
+    try {
+      await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
+      const eventStream = await this.lectureAgentService.graph.streamEvents(
+        {
+          input: lecture.input,
+        },
+        {
+          configurable: {
+            thread_id,
+            authContext,
+            lectureId: lecture.id,
+            showNotification: false
+          },
+          version: 'v2',
+        },
+      );
+
+
+      for await (const item of eventStream) {
+        const { event, name, data } = item;
+        try {
+          const isCustomEvent = event === 'on_custom_event';
+          if (isCustomEvent) {
+            let eventName: string;
+            let dataChunk: any = {};
+            eventName = name;
+            dataChunk = data.chunk;
+            lecture = await this.lecturesRepository.findOne(authContext, { id: lecture.id });            
+            if (eventName === 'FINALIZING') {
+              await this.client.emit<any, LectureCreatedServiceDto>('lecture.recreated', {
+                id: lecture.id,
+                topic: lecture.topic,
+                title: lecture.title,
+                emoji: lecture.emoji,
+                languageCode: lecture.languageCode,
+                userId: lecture.userId,
+                workspaceId: lecture.workspaceId,
+                sections: lecture.sections.map(section => ({
+                  title: section.title,
+                  content: section.content
+                })),
+                voiceInstructions: lecture.voiceInstructions
+              });
+            }
+          }
+        } catch (error) {
+          console.log('error', error)
+        }
+      }
+    } catch (error) {
+      console.log('CallAgent error', error)
+      lecture = await this.lecturesRepository.findOne(authContext, { id: lecture.id });
+      await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
+    }
   }
 
   async handleTTSCompleted(lectureTTSCompleted: LectureTTSCompletedServiceDto) {
@@ -231,9 +289,29 @@ export class LecturesService extends AbstractService<Lecture> {
     };
 
     await this.lectureMetadataService.addToLibrary(authContext, lecture.id);
-
     await this.pubSubService.publish<Lecture>(LectureCreatingTopic, lecture);
     await this.notificationsService.sendNotification(LectureCreatedNotification, authContext, lecture);
+  }
+
+  async handleTTSRecreated(lectureTTSCompleted: LectureTTSCompletedServiceDto) {
+    const { id, audio, aligners, image } = lectureTTSCompleted;
+    const lecture = await this.lecturesRepository.updateOne(false, { id }, {
+      audio,
+      aligners,
+      image,
+      creationEvent: {
+        name: 'DONE',
+        showNotification: false
+      },
+    });
+
+    const user = await this.usersService.findOne(null, lecture.userId, { throwErrorIfNotFound: false });
+    const authContext = {
+      user,
+      workspaceId: lecture.workspaceId
+    };
+
+    await this.notificationsService.sendNotification(LectureRecreatedNotification, authContext, lecture);
   }
 
   async markAsReady(authContext: AuthContextType, id: string, state: string, showNotification: boolean) {
