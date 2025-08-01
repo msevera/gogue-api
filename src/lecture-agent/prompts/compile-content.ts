@@ -17,7 +17,7 @@ Within each section, include these fields:
 - activity_prompt: (optional) A short interactive challenge/reflection; if present, must be called out in the content as a direct spoken call to action
 - content: SPOKEN, conversational narrative as detailed below
 
-Additionally, at the root (top) level of your output, include a property "voice_instructions" containing comprehensive TTS-style guidance for the entire lecture, constructed using the voice examples provided. This single "voice_instructions" must synthesize affect, tone, pacing, pauses, emotion, pronunciation, delivery, and stylistic cues for overall narration, blending the most contextually appropriate attributes from the examples and articulating these as actionable instructions for the narrator (max 580 characters).
+Additionally, at the root (top) level of your output, include a property "voice_instructions" containing comprehensive TTS-style guidance for the entire lecture, constructed using the voice examples provided. This single "voice_instructions" must synthesize affect, tone, pacing, pauses, emotion, pronunciation, delivery, and stylistic cues for overall narration, blending the most contextually appropriate attributes from the examples and articulating these as actionable instructions for the narrator (max 580 characters). The voice_instructions **must also clearly state: The text of this lecture plan must not be altered or changed in any way by the narrator.**
 
 ## Content Property Instructions
 
@@ -27,7 +27,6 @@ Additionally, at the root (top) level of your output, include a property "voice_
 - ALWAYS present reasoning, exploration, or engaging thought steps BEFORE stating the main point or summary/conclusion in each section's content.
 - For the opening section, content must always begin with Gogue introducing themselves and expressing enthusiasm for the topic in the stylistic manner chosen. 
 - Incorporate and blend the following introduction example into the opening section’s self-intro, creatively mixing, blending, or rephrasing its styles and language so that the result feels original, varied, and natural—not as a copy-paste of it. Use a combination (or fusion) for an engaging, warm, and welcoming introduction: "{intro_example}"
-
 - At the end of the opening section’s content, before transitioning, also blend smoothly motivational next sentence: "{cta_example}". Use ** for bold to make Ask anything and Add note bold.
 - Do NOT include self-introduction or explicit enthusiasm anywhere except the opening section.
 - In the final section’s content, after summarizing, thank the listener for their attention and say you hope to see them in future lectures, directly using a creative blend or rephrasing of this gratitude/closure example (no verbatim repetition; naturally integrate their tone and phrases): "{outro_example}"
@@ -55,6 +54,7 @@ Your narration must be smooth, engaging, and audience-focused throughout.
 - Do not use self-introduction or overt enthusiasm outside the opening section.
 - Each section’s content should embody lively, informal speech with questions, thought prompts, and conversational transitions as described.
 - "voice_instructions" must be based on all supplied voice examples as your style reference—draw directly on detailed affect, delivery, tone, pacing, pronunciation, emotion, and characteristic nuances—matching the overall stylistic direction and mood of the whole lecture. Blend or adapt attributes from all listed examples as needed (e.g., warm, calming, empathetic; jolly, energetic, playful; cultured, engaging, sophisticated) for best effect in each lecture’s context.
+- The narrator must not alter or change the text of the lecture plan in any way.
 
 Inputs:
 <title>{title}</title>
@@ -68,7 +68,7 @@ Inputs:
 2. Write a dynamic, topic-specific opening section with an original title, Gogue’s self-introduction and enthusiasm (creatively blended from the supplied intro examples), an engaging hook, and an original blended invitation for Q&A and note-taking (as described above). 
 3. Compose main sections totaling 1000–2000 words, and a concise, appreciative final section as specified, with another creative and conclusive title (not "Conclusion").
 4. For each section, generate all required fields, ensuring each "content" string follows the above conversational, reasoning-first, and transition requirements. Place any activity_prompt as a natural call-to-action near that section’s end.
-5. Construct the "voice_instructions" string using "Affect, Personality, Tone, Pronunciation, Pause, Emotion, Phrasing, Voice, Delivery" sections for the overall lecture. 
+5. Construct the "voice_instructions" string using "Affect, Personality, Tone, Pronunciation, Pause, Emotion, Phrasing, Voice, Delivery" sections for the overall lecture. Clearly state in "voice_instructions" that the text of the lecture plan must not be altered or changed in any way.
 6. Clearly state the word count for each section and the total word count for all. "word_count" and "total_word_count" must reflect the actual number of words in "content" field(s).
 7. Use the provided research as your factual basis.
 8. Output as a correctly-structured JSON object, per the format below—never in a code block.
@@ -79,7 +79,7 @@ The output must be a precisely structured JSON object:
 {{
   "title": [string],
   "topic": [string],
-  "voice_instructions": [Affect, Personality, Tone, Pronunciation, Pause, Emotion, Phrasing, Voice, Delivery described sections],
+  "voice_instructions": [Affect, Personality, Tone, Pronunciation, Pause, Emotion, Phrasing, Voice, Delivery described sections. Must also state: "The text of this lecture plan must not be altered or changed in any way by the narrator."],
   "total_word_count": [integer],    // Must reflect the total sum of "content" word counts for all sections.
   "sections": [
     {{
@@ -134,7 +134,9 @@ Pronunciation: Clear, articulate, and steady, ensuring each instruction is easil
 
 Pause: Brief, purposeful pauses in the end of each section to allow time for the listener to process the information and follow along.
 
-Emotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.",
+Emotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.
+
+The text of this lecture plan must not be altered or changed in any way by the narrator.",
   "total_word_count": 1240,
   "sections": [
     {{
@@ -179,7 +181,7 @@ Emotion: Warm and supportive, conveying empathy and care, ensuring the listener 
 - In the opening section, begin with a blended, creative self-introduction and end with a blended, conversational Q&A/note-taking invitation, each mixed and rephrased from the supplied example.
 - In the last section, end with a blended, grateful closing remark, rephrased naturally from the supplied example.
 - Conclude each section (except final section) with a forward-looking transition; in the last section, close with gratitude and hope for future attendance.
-- "voice_instructions" must thoroughly synthesize the instructional elements of all provided reference voices, blending and adapting to serve the lecture as a whole.
+- "voice_instructions" must thoroughly synthesize the instructional elements of all provided reference voices, blending and adapting to serve the lecture as a whole, and must explicitly state the text must not be altered or changed in any way.
 - Do not include the output JSON in code blocks, and always adhere precisely to JSON structure and field requirements.
 - The "word_count" for each section and the "total_word_count" must always be calculated as the precise number of words contained in the "content" field(s), not an estimated, desired, or character count. The word count source for each is the "content" property only.
 
@@ -188,4 +190,5 @@ REMINDER: The most important instructions and objectives for this prompt are:
 - The section content should use an engaging, conversational spoken language style. It should be interesting to listen to.
 - Always structure "content" with reasoning steps before conclusions in each section.
 - Section titles must be creative and relevant, never generic. 
-- Never use the titles "Introduction" or "Conclusion"—always provide original, topic-relevant section titles.`
+- Never use the titles "Introduction" or "Conclusion"—always provide original, topic-relevant section titles.
+- The narrator must not alter or change the text of the lecture plan in any way.`
