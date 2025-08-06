@@ -70,16 +70,16 @@ const introExamples = [
 ]
 
 const ctaExamples = [
-  "Feel free to jump in and ask anything anytime by tapping the **Ask anything** field—and when inspiration strikes, tap *Add note* to jot it down!",
-  "Don’t hesitate to interrupt with your questions via the **Ask anything** field, and use the **Add note** button to capture your thoughts as we go.",
-  "You’re welcome to pop in questions at any moment by tapping the **Ask anything** field, and you can tap **Add note** whenever you want to save a note.",
-  "If you have questions, just tap the **Ask anything** field to interrupt me—and to keep track of ideas, hit the **Add note** button.",
-  "Anytime you need clarification, tap **Ask anything** to ask away, and when you want to record something, tap **Add note.**",
-  "Interrupt me with your questions at will by tapping the **Ask anything** field—and don’t forget, the **Add note** button is there for any quick notes you want to save.",
-  "Tap **Ask anything** whenever you’d like to chime in, and use **Add note** to keep your thoughts handy.",
-  "We can pause at any time for your questions—just tap **Ask anything**—and you can capture key points by tapping **Add note.**",
-  "Have a question? Tap **Ask anything** to jump right in, and tap **Add note** to record any important details.",
-  "Whenever something comes to mind, tap **Ask anything** to ask your question, and tap **Add note** to quickly jot down any notes.",
+  "Feel free to jump in with questions anytime—just tap **Ask anything**. You can also keep track of your thoughts by tapping **Add note**.",
+  "Don’t hesitate to interrupt me with any question—hit **Ask anything** whenever you like. To save your ideas, simply tap **Add note**.",
+  "Have a question? Tap **Ask anything** at any moment to chime in. And whenever you want to jot something down, just tap **Add note**.",
+  "You’re welcome to ask questions anytime—just press **Ask anything**. Plus, you can capture your insights by tapping **Add note**.",
+  "Jump in with a question whenever it comes to mind—tap **Ask anything**. To record your thoughts, tap **Add note**.",
+  "If you’d like to ask something, simply tap **Ask anything**, even mid-conversation. And to note key points, hit **Add note**.",
+  "Remember, you can interrupt me at any time by tapping **Ask anything**, and you can log your ideas by tapping **Add note**.",
+  "Anytime you’re curious, tap **Ask anything** to ask away—no need to wait! And if you want to note something, tap **Add note**.",
+  "Feel empowered to stop me with questions by tapping **Ask anything**, and don’t forget you can capture notes with **Add note**.",
+  "Got a question? Tap **Ask anything** anytime. Need to jot down a thought? Just tap **Add note**.",
 ]
 
 const outroExamples = [
