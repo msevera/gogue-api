@@ -7,6 +7,7 @@ import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import { LectureCreationEvent } from '../dto/lecture-event.dto';
 import { LectureMetadata } from '../../../src/lecture-metadata/entities/lecture-metadata.entity';
 import { Category } from '../../../src/categories/entities/category.entity';
+import { Source } from 'src/sources/entities/source.entity';
 
 
 @Schema({ _id: false })
@@ -252,6 +253,14 @@ export class Lecture extends WorkspaceEntity {
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
   voiceInstructions?: string;
+
+  @Field(() => Source, { nullable: true })
+  @Prop({ type: Source })
+  source?: Source;
+
+  @Field(() => ID, { nullable: true })
+  @Prop({ required: false })
+  sourceId?: string;
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

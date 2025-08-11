@@ -25,4 +25,8 @@ export class CategoriesService extends AbstractService<Category> {
   async findByNameEmbeddings(embeddings: number[]) {
     return this.categoriesRepository.findByNameEmbeddings(embeddings);
   }
+
+  async findByNames(names: string[]) {
+    return this.categoriesRepository.find(false, { name: { $in: names } });
+  }
 } 
