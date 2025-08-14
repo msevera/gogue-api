@@ -8,6 +8,8 @@ import { LectureMetadataRepository } from '../lecture-metadata/lecture-metadata.
 import { LectureMetadataDataLoader } from '../lecture-metadata/data-loaders/lecture-metadata.data-loader';
 import { CategoriesRepository } from '../categories/categories.repository';
 import { CategoriesDataLoader } from '../categories/data-loaders/categories.data-loader';
+import { SourceRepository } from 'src/sources/sources.repository';
+import { SourceDataLoader } from 'src/sources/data-loaders/sources.data-loader';
 
 export class DataLoaderRegistry {
   private cache: Record<string, any> = {};
@@ -18,6 +20,7 @@ export class DataLoaderRegistry {
     private readonly notesRepository: NotesRepository,
     private readonly lectureMetadataRepository: LectureMetadataRepository,
     private readonly categoriesRepository: CategoriesRepository,
+    private readonly sourcesRepository: SourceRepository,
   ) {}
 
   /**
@@ -66,6 +69,13 @@ export class DataLoaderRegistry {
     return this.get(
       'categories',
       () => new CategoriesDataLoader(this.categoriesRepository),
+    );
+  }
+
+  public get sources() {
+    return this.get(
+      'sources',
+      () => new SourceDataLoader(this.sourcesRepository),
     );
   }
 }

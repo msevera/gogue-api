@@ -170,6 +170,22 @@ export class LectureCategory {
   category?: Category;
 }
 
+@Schema({ _id: false })
+@ObjectType()
+export class WorkbookTask {
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  prompt?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  instructions?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  expectedFormat?: string;
+}
+
 @CustomSchema()
 @ObjectType()
 export class Lecture extends WorkspaceEntity {
@@ -259,8 +275,23 @@ export class Lecture extends WorkspaceEntity {
   source?: Source;
 
   @Field(() => ID, { nullable: true })
-  @Prop({ required: false })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Source',
+    get: (value: mongoose.Schema.Types.ObjectId) => {
+      return value?.toString();
+    },
+    required: false,
+  })
   sourceId?: string;
+
+  @Field(() => [String], { nullable: true })
+  @Prop({ required: false })
+  keyInsights?: string[];
+
+  @Field(() => [WorkbookTask], { nullable: true })
+  @Prop({ required: false })
+  workbook?: WorkbookTask[];
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

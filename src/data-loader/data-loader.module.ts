@@ -5,9 +5,10 @@ import { LecturesModule } from '../lectures/lectures.module';
 import { NotesModule } from '../notes/notes.module';
 import { LectureMetadataModule } from '../lecture-metadata/lecture-metadata.module';
 import { CategoriesModule } from '../categories/categories.module';
+import { SourcesModule } from 'src/sources/sources.module';
 
 @Module({
-  imports: [UsersModule, LecturesModule, NotesModule, LectureMetadataModule, CategoriesModule],
+  imports: [UsersModule, LecturesModule, NotesModule, LectureMetadataModule, CategoriesModule, SourcesModule],
   providers: [DataLoaderFactory],
   exports: [DataLoaderFactory],
 })

@@ -16,8 +16,7 @@ export const responseSchema = {
         },
         "overview": {
           "type": "string",
-          "description": "Brief overview of the entire lecture. Must contain at least 2 sentences.",
-          "minLength": 10
+          "description": "Brief overview of the entire lecture. Must contain at least 2 sentences."
         },
         "total_word_count": {
           "type": "integer",
@@ -28,19 +27,19 @@ export const responseSchema = {
           "type": "string",
           "description": "Instructions for voice delivery for the entire lecture (e.g., tone, emphasis)."
         },
-        "sections": {
-          "type": "array",
-          "description": "Ordered list of sections in the lecture.",
-          "items": {
-            "$ref": "#/$defs/section"
-          }
-        },
         "key_insights": {
           "type": "array",
           "description": "List of core insights, succinctly summarizing the most important ideas from the lecture.",
           "items": {
             "type": "string",
             "description": "A core insight or take-away from the lecture."
+          }
+        },
+        "sections": {
+          "type": "array",
+          "description": "Ordered list of sections in the lecture.",
+          "items": {
+            "$ref": "#/$defs/section"
           }
         },
         "workbook": {
@@ -57,8 +56,8 @@ export const responseSchema = {
         "overview",
         "total_word_count",
         "voice_instructions",
-        "sections",
         "key_insights",
+        "sections",
         "workbook"
       ],
       "additionalProperties": false,

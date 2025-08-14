@@ -35,19 +35,30 @@ export class StorageService {
   ): Promise<UploadImageResult> {
     const response = await axios.get<ArrayBuffer>(imageUrl, {
       responseType: 'arraybuffer',
-      // Follow redirects and set a sensible timeout
       maxRedirects: 3,
       timeout: 15000,
     });
 
     const buffer = Buffer.from(response.data);
+    return this.uploadImageFromBuffer(buffer, destinationPrefix);
+  }
 
+  async uploadImageFromBuffer(
+    buffer: Buffer,
+    destinationPrefix: string,
+  ): Promise<UploadImageResult> {
+    return this.uploadBufferToStorage(buffer, destinationPrefix);
+  }
+
+  private async uploadBufferToStorage(
+    buffer: Buffer,
+    destinationPrefix: string,
+  ): Promise<UploadImageResult> {
     const metadata = await sharp(buffer).metadata();
     if (!metadata.width || !metadata.height || !metadata.format) {
       throw new InternalServerErrorException('Unable to read image metadata');
     }
 
-    // Compute average color by resizing to 1x1 in sRGB and reading the pixel
     const { data: pixel } = await sharp(buffer)
       .toColorspace('srgb')
       .resize(1, 1, { fit: 'cover' })

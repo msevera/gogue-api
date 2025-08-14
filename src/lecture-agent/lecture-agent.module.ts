@@ -7,6 +7,7 @@ import { LecturesModule } from '../lectures/lectures.module';
 import { LectureAgentResolver } from './lecture-agent.resolver';
 import { NotesModule } from '../notes/notes.module';
 import { CategoriesModule } from '../categories/categories.module';
+import { SourcesModule } from 'src/sources/sources.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CategoriesModule } from '../categories/categories.module';
     UsersModule, 
     NotesModule, 
     CategoriesModule,
+    SourcesModule
   ],
   controllers: [LectureAgentController],
   providers: [LectureAgentService, LectureAgentConfigService, LectureAgentResolver],

@@ -5,12 +5,10 @@ import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
 import { Role } from '@app/common/dtos/role.enum.dto';
 import { SourceService } from './sources.service';
 import { Source } from './entities/source.entity';
-import { CreateSourceDto } from './dto/create-source.dto';
+import { UpsertSourceDto } from './dto/upsert-source.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { SourcesCursorDto } from './dto/sources-cursor.dto';
 import { MatchedSourcesInputDto } from './dto/matched-sources.dto';
-
-
 
 @Resolver(() => Source)
 export class SourcesResolver {
@@ -19,15 +17,6 @@ export class SourcesResolver {
    
   ) { }
 
-  // @Auth(Role.CONSUMER)
-  @Mutation(() => Source, { name: 'createSource' })
-  async createOne(
-    @Args('input') input: CreateSourceDto,
-    @AuthContext() authContext: AuthContextType
-  ) {
-    return this.sourcesService.createOne(input);  
-  }
-
   @Auth(Role.CONSUMER)
   @Query(() => SourcesCursorDto, { name: 'sourcesMatched' })
   async findMatched(
@@ -35,5 +24,14 @@ export class SourcesResolver {
     @Args('input', { nullable: true }) input: MatchedSourcesInputDto
   ) {
     return this.sourcesService.findMatched(input, pagination);
+  }
+
+  @Mutation(() => Boolean, { name: 'upsertSources' })
+  async upsertSources(
+    @Args('input', { type: () => [UpsertSourceDto] }) input: UpsertSourceDto[],
+    @AuthContext() authContext: AuthContextType
+  ) {
+    this.sourcesService.upsertMany(input);  
+    return true;
   }
 } 

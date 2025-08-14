@@ -119,7 +119,7 @@ export class LecturesService extends AbstractService<Lecture> {
   }
 
   async callAgent(authContext: AuthContextType, lectureAgentInput: LectureAgentInputDto) {
-    const { input } = lectureAgentInput;
+    const { input, sourceId } = lectureAgentInput;
     const thread_id = `lectures-${authContext.workspaceId}-${authContext.user.id}-${new Date().getTime()}`;
 
     let lecture = await this.lecturesRepository.create(authContext, {
@@ -133,6 +133,7 @@ export class LecturesService extends AbstractService<Lecture> {
         name: 'INIT',
         showNotification: true
       },
+      sourceId
     });
 
     try {
@@ -146,6 +147,7 @@ export class LecturesService extends AbstractService<Lecture> {
             thread_id,
             authContext,
             lectureId: lecture.id,
+            sourceId,
             showNotification: true
           },
           version: 'v2',

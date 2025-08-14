@@ -21,6 +21,7 @@ import { SearchLecturesInputDto } from './dto/search-lectures.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { SortOrder } from '@app/common/database/options';
 import { UsersService } from '../users/users.service';
+import { Source } from 'src/sources/entities/source.entity';
 
 @Resolver(() => LectureSection)
 export class LectureSectionResolver {
@@ -62,6 +63,14 @@ export class LecturesResolver {
     private readonly notificationsService: NotificationsService,
     private readonly usersService: UsersService
   ) { }
+
+  @ResolveField('source', () => Source)
+  async source(
+    @Parent() item: Lecture,
+    @Context() { dataLoaders }: { dataLoaders: DataLoaderRegistry },
+  ) {
+    return item.sourceId ? dataLoaders.sources.findOne(item.sourceId.toString()) : null;
+  }
 
   @ResolveField('metadata', () => LectureMetadata)
   async metadata(

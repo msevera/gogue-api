@@ -86,6 +86,20 @@ class UpdateLectureCategoryDto {
   categoryId: string;
 }
 
+class UpdateWorkbookTaskDto {
+  @IsString()
+  @IsNotEmpty()
+  prompt: string;
+
+  @IsString()
+  @IsNotEmpty()
+  instructions: string;
+
+  @IsString()
+  @IsNotEmpty()
+  expectedFormat: string;
+}
+
 export class UpdateLectureDto {
   @IsString()
   @IsNotEmpty()
@@ -123,4 +137,16 @@ export class UpdateLectureDto {
   @IsString()
   @IsOptional()
   voiceInstructions?: string;
+
+  @IsArray()
+  @IsOptional()
+  keyInsights?: string[];
+
+  @IsArray()
+  @IsOptional()
+  workbook?: UpdateWorkbookTaskDto[];
+
+  @IsString()
+  @IsOptional()
+  sourceId?: string;
 } 

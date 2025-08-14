@@ -11,14 +11,17 @@ import { prompt as normalizePrompt } from './prompts/normalize';
 import { prompt as researchPlanPrompt } from './prompts/research-planner';
 import { prompt as researchContentPrompt } from './prompts/research-content';
 import { prompt as compileContentPrompt } from './prompts/compile-content';
+import { prompt as personalizeContentPrompt } from './prompts/personalize-content';
 import { prompt as categoriesPrompt } from './prompts/categories';
 import { responseSchema as researchPlannerAgentResponseSchema } from './schemas/research-planner-agent';
 import { responseSchema as normalizeAgentResponseSchema } from './schemas/normalize-agent';
 import { responseSchema as compileContentAgentResponseSchema } from './schemas/compile-content-agent';
 import { responseSchema as categoriesAgentResponseSchema } from './schemas/categories-agent';
+import { responseSchema as personalizeContentAgentResponseSchema } from './schemas/personalize-content-agent';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { LecturesService } from '../lectures/lectures.service';
 import { CategoriesService } from '../categories/categories.service';
+import { SourceService } from '../sources/sources.service';
 
 class ContentAnnotation {
   startIndex: number;
@@ -34,6 +37,12 @@ class ResearchPlan {
   category: string;
   content?: string;
   annotations?: ContentAnnotation[];
+}
+
+class WorkbookTask {
+  prompt: string;
+  instructions: string;
+  expectedFormat: string;
 }
 
 class Category {
@@ -108,7 +117,9 @@ export class LectureAgentService {
     overview: Annotation<string>(),
     categories: Annotation<Category[]>(),
     sections: Annotation<Section[]>(),
-    voiceInstructions: Annotation<string>()
+    voiceInstructions: Annotation<string>(),
+    keyInsights: Annotation<string[]>(),
+    workbook: Annotation<WorkbookTask[]>(),
   });
   private builder: any;
   private _graph: any;
@@ -117,12 +128,14 @@ export class LectureAgentService {
   private researchContentModel: any;
   private compileContentModel: any;
   private categoriesModel: any;
+  private personalizeContentModel: any;
 
   constructor(
     private configService: ConfigService,
     @Inject(forwardRef(() => LecturesService))
     private lecturesService: LecturesService,
     private categoriesService: CategoriesService,
+    private sourcesService: SourceService,
   ) {
 
     const modelSettings = {
@@ -153,9 +166,29 @@ export class LectureAgentService {
     }).bindTools([{ type: "web_search_preview" }], { tool_choice: { "type": "web_search_preview" } });
 
     this.compileContentModel = new ChatOpenAI({
+      // model: 'gpt-5',
+      // temperature: 1,
+      // reasoning: {
+      //   effort: 'minimal',
+      //   summary: null
+      // },
+      // verbosity: 'medium',
       ...modelSettings,
       modelKwargs: {
         response_format: compileContentAgentResponseSchema
+      }
+    });
+
+    this.personalizeContentModel = new ChatOpenAI({
+      model: 'gpt-5',
+      temperature: 1,
+      reasoning: {
+        effort: 'minimal',
+        summary: null
+      },
+      verbosity: 'medium',
+      modelKwargs: {
+        response_format: personalizeContentAgentResponseSchema
       }
     });
 
@@ -352,12 +385,15 @@ export class LectureAgentService {
     state: typeof this.graphAnnotation.State,
     config?: RunnableConfig,
   ) => {
-    const { researchPlan, title, topic } = state;
-    const { authContext, lectureId, showNotification } = config.configurable as {
+    const { researchPlan, title, topic, input } = state;
+    const { authContext, lectureId, sourceId, showNotification } = config.configurable as {
       authContext: AuthContextType;
       lectureId: string;
+      sourceId: string;
       showNotification: boolean;
     };
+
+    const source = sourceId ? await this.sourcesService.findOne(false, sourceId) : null;
 
     const compilingContentEvent = 'COMPILING_CONTENT';
     await this.lecturesService.updateOne(authContext, lectureId, {
@@ -376,8 +412,10 @@ export class LectureAgentService {
 
 
     const prompt = await systemPrompt.invoke({
+      book: source ? `${source.title} by ${source.authors?.join(', ')}` : 'null',
       title: title,
       topic: topic,
+      user_input: input,
       researched_content: researchPlan.map(section => section.content).join('\n'),
       current_timestamp: new Date().toDateString(),
       intro_example: getRandomItem(introExamples),
@@ -387,7 +425,7 @@ export class LectureAgentService {
 
     const result = await this.compileContentModel.invoke([...prompt]);
     const parsed = JSON.parse(result.content as string);
-    const { overview, voice_instructions, sections } = parsed;
+    const { overview, voice_instructions, sections, key_insights, workbook } = parsed;
 
 
 
@@ -398,6 +436,12 @@ export class LectureAgentService {
         title: section.title,
         content: section.content,
         overview: section.overview,
+      })),
+      keyInsights: key_insights,
+      workbook: workbook?.map(task => ({
+        prompt: task.prompt,
+        instructions: task.instructions,
+        expectedFormat: task.expected_format
       }))
     };
   }
@@ -456,7 +500,7 @@ export class LectureAgentService {
     config?: RunnableConfig,
   ) => {
     try {
-      const { overview, sections, voiceInstructions, categories } = state;
+      const { overview, sections, voiceInstructions, categories, workbook, keyInsights } = state;
       const { authContext, lectureId, showNotification } = config.configurable as {
         authContext: AuthContextType;
         lectureId: string;
@@ -464,7 +508,6 @@ export class LectureAgentService {
       };
 
       const finalizingEvent = 'FINALIZING';
-
       const newCategories = await this.categoriesService.createMany(
         categories
           .filter(category => category.id === null)
@@ -486,7 +529,9 @@ export class LectureAgentService {
         creationEvent: {
           name: finalizingEvent,
           showNotification
-        }
+        },
+        keyInsights,
+        workbook
       });
 
       await dispatchCustomEvent(finalizingEvent, {

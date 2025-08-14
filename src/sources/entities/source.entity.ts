@@ -7,6 +7,18 @@ import mongoose from 'mongoose';
 
 @Schema({ _id: false })
 @ObjectType()
+export class SourceSection {
+  @Field(() => String)
+  @Prop({ required: true })
+  title: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  overview?: string;
+}
+
+@Schema({ _id: false })
+@ObjectType()
 export class SourceImage {   
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
@@ -64,6 +76,10 @@ export class Source extends CacheEntity {
 
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
+  topic?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
   internalDescription?: string;
 
   @Field(() => [Number], { nullable: true })
@@ -81,6 +97,18 @@ export class Source extends CacheEntity {
   @Field(() => [SourceCategory], { nullable: true })
   @Prop({ required: false, type: [SourceCategory] })
   categories?: SourceCategory[];
+
+  @Field(() => [SourceSection], { nullable: true })
+  @Prop({ type: [SourceSection] })
+  sections?: SourceSection[];
+
+  @Field(() => [String], { nullable: true })
+  @Prop({ required: false })
+  keyInsights?: string[];
+
+  @Field(() => [String], { nullable: true })
+  @Prop({ required: false })
+  keyTakeaways?: string[];
 }
 
 export const SourceEntity = SchemaFactory.createForClass(Source);

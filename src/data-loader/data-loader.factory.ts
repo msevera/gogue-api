@@ -5,6 +5,7 @@ import { LecturesRepository } from '../lectures/lectures.repository';
 import { NotesRepository } from '../notes/notes.repository';
 import { LectureMetadataRepository } from '../lecture-metadata/lecture-metadata.repository';
 import { CategoriesRepository } from 'src/categories/categories.repository';
+import { SourceRepository } from 'src/sources/sources.repository';
 
 @Injectable()
 export class DataLoaderFactory {
@@ -14,6 +15,7 @@ export class DataLoaderFactory {
     private readonly notesRepository: NotesRepository,
     private readonly lectureMetadataRepository: LectureMetadataRepository,
     private readonly categoriesRepository: CategoriesRepository,
+    private readonly sourcesRepository: SourceRepository,
   ) { }
 
   create(): DataLoaderRegistry {
@@ -22,7 +24,8 @@ export class DataLoaderFactory {
       this.lecturesRepository,
       this.notesRepository,
       this.lectureMetadataRepository,
-      this.categoriesRepository
+      this.categoriesRepository,
+      this.sourcesRepository
     );
   }
 }
