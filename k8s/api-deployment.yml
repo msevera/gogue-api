@@ -126,4 +126,9 @@ spec:
                 secretKeyRef:
                   name: api-kafkajs-no-partitioner-warning
                   key: API_KAFKAJS_NO_PARTITIONER_WARNING
+            - name: GCS_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: api-gcs-bucket-name
+                  key: API_GCS_BUCKET_NAME
 
