@@ -130,3 +130,4 @@ node_modules/
 firebase-emulator
 firebase-export*
 scratch*
+quokka/*

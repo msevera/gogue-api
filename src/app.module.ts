@@ -31,6 +31,8 @@ import { NoteMessagesModule } from './note-messages/note-messages.module';
 import { CategoriesModule } from './categories/categories.module';
 import { BullModule } from '@nestjs/bullmq';
 import { GlimpsesModule } from './glimpses/glimpses.module';
+import { StorageModule } from './storage/storage.module';
+import { SourcesModule } from './sources/sources.module';
 
 ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
 
@@ -142,7 +144,9 @@ ContextIdFactory.apply(new AggregateByWorkspaceContextIdStrategy());
     NoteAgentModule,
     NoteMessagesModule,
     CategoriesModule,
-    GlimpsesModule
+    GlimpsesModule,
+    SourcesModule,
+    StorageModule
   ],
   controllers: [AppController],
   providers: [AppService],

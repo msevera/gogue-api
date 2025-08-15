@@ -1,23 +1,35 @@
-export const prompt = `Generate a structured, audience-friendly lecture plan based on provided research data, designed for narration by a lecturer named Gogue, using an engaging, conversational spoken language style.
+export const prompt = `Generate a structured, audience-friendly lecture plan based on provided research data and, when specified, a book, designed for narration by a lecturer named Gogue. Use a highly engaging, conversational spoken language style and ensure all content is presented in a dynamic, narrative-driven way with reasoning always preceding any conclusions, main points, or takeaways.
 
-Your lecture plan must include:
+**Conditional Book and Research Content Tailoring Requirement:**
+If the <book> variable is specified (not blank or null), you must tailor every aspect of the lecture plan—including section titles, objectives, overviews, narratives, examples, activities, key insights, and workbook tasks—directly to that book. However, researched_content must always be substantially analyzed and explicitly considered in constructing every section, key insight, and workbook task. The content and components of the lecture should synthesize and creatively highlight the book’s most important and unique insights, themes, or findings, while thoughtfully integrating and relating relevant points, data, or context from researched_content to provide depth, context, or counterpoint. Both book and researched_content must be demonstrably present in each section’s construction, insight, and workbook item, and their interaction or contrast should be made explicit where possible, in ways that make the book’s lessons more actionable or nuanced for the audience. Always integrate relevant user_input into the framing and examples.
 
-- A dynamic, topic-relevant first section (max 80 words), replacing the generic "Introduction" with a creative, engaging, or topic-specific title.
-- Several main sections (total 1000–2000 words across all), with content that logically builds from one topic to the next.
-- A closing section (max 80 words), replacing the generic "Conclusion" with a creative, engaging, or topic-specific title.
-- Each section must specify its exact word count.
+If <book> is not specified, proceed as usual, drawing from researched_content broadly for the lecture’s foundation.
 
-Within each section, include these fields:
+# Your lecture plan must include, at minimum:
 
-- title: Section title (e.g., "Viral Beginnings," "Why We Click," "Your Digital Legacy")—DO NOT use "Introduction" or "Conclusion" as section titles, nor start any title with "Section". Section titles must clearly relate to the section’s content and should be creative, topic-specific, or emotionally engaging.
-- word_count: Exact integer word count for this section. This must always be derived by counting the words in the "content" field for the section.
-- overview: Brief gerund-style summary (e.g., “Exploring…”)
-- objective: What listeners will learn
-- takeaway: The primary point to remember
-- activity_prompt: (optional) A short interactive challenge/reflection; if present, must be called out in the content as a direct spoken call to action
-- content: SPOKEN, conversational narrative as detailed below
+- A dynamic, creative, topic-relevant opening section (max 80 words), never titled "Introduction"; begin with Gogue’s self-intro (blended from provided examples), followed by an engaging hook and Q&A or note-taking invitation.
+- Multiple logically sequenced main sections (combined 2000–2500 words, use minimum 5000 tokens), always tailored to <book> and <user_input> and deeply infused with researched_content if <book> is present; otherwise, based on research and topic alone.
+- A creative, topic-relevant closing section (max 80 words), never titled "Conclusion," ending with gratitude/closure per provided instructions.
+- Each section must specify its exact word count, calculated from the "content" string for that section.
+- For each section, include:
+    - title: Creative, topic-relevant, never "Introduction" or "Conclusion"
+    - word_count: Exact number of words in "content"
+    - overview: Gerund-style summary, book-specific and referencing researched_content if book is present
+    - objective: Learning goal, book- and research-linked if relevant
+    - takeaway: Primary point, drawn from book and research together when book provided
+    - activity_prompt: Optional, actionable, book- and research-related if possible, with explicit call-out in content
+    - content: Conversational, spoken, with reasoning/exploration always before any main point or summary/conclusion. Weave together evidence, themes, or stories from both the book and researched_content, using rhetorical questions, audience engagement, and informal style.
 
-Additionally, at the root (top) level of your output, include a property "voice_instructions" containing comprehensive TTS-style guidance for the entire lecture, constructed using the voice examples provided. This single "voice_instructions" must synthesize affect, tone, pacing, pauses, emotion, pronunciation, delivery, and stylistic cues for overall narration, blending the most contextually appropriate attributes from the examples and articulating these as actionable instructions for the narrator (max 580 characters). The voice_instructions **must also clearly state: The text of this lecture plan must not be altered or changed in any way by the narrator.**
+Additionally, at the root level, include:
+
+- voice_instructions: Synthesize all supplied voice examples to instruct tone, pacing, emotion, delivery, and other attributes. Explicitly state: "The text of this lecture plan must not be altered or changed in any way by the narrator."
+- total_word_count: Integer sum of all section "content" word counts.
+- key_insights: Array of 3–7 succinct, high-impact core insights from the lecture as a whole, each as a string. When book is present, ensure insights are substantially grounded in and blended with both the book’s standout lessons and researched_content, and that they are explicitly linked to section content. For each, present reasoning or exploration before the final formulation of the insight wherever explanatory text is used.
+- workbook: Array of 3–7 workbook_task objects designed for learners to reflect on, analyze, or apply the synthesis of lecture, book, and researched_content. Each task must be original, book- and research-content-specific if possible, and must contain:
+    - task_id (unique string)
+    - prompt (clear, actionable question/challenge)
+    - instructions (explicit step-by-step guidance for task completion, referencing both book and research when book is specified)
+    - expected_format (expected answer style: short answer, paragraph, bullet points, etc.)
 
 ## Content Property Instructions
 
@@ -56,139 +68,151 @@ Your narration must be smooth, engaging, and audience-focused throughout.
 - "voice_instructions" must be based on all supplied voice examples as your style reference—draw directly on detailed affect, delivery, tone, pacing, pronunciation, emotion, and characteristic nuances—matching the overall stylistic direction and mood of the whole lecture. Blend or adapt attributes from all listed examples as needed (e.g., warm, calming, empathetic; jolly, energetic, playful; cultured, engaging, sophisticated) for best effect in each lecture’s context.
 - The narrator must not alter or change the text of the lecture plan in any way.
 
-Inputs:
+
+Inputs you will receive:
 <title>{title}</title>
 <topic>{topic}</topic>
+<book>{book}</book>
+<user_input>{user_input}</user_input>
 <researched_content>{researched_content}</researched_content>
 <current_timestamp>{current_timestamp}</current_timestamp>
 
 # Steps
 
-1. Analyze the researched_content and identify the main points, laying them out as a coherent sequence of main sections.
-2. Write a dynamic, topic-specific opening section with an original title, Gogue’s self-introduction and enthusiasm (creatively blended from the supplied intro examples), an engaging hook, and an original blended invitation for Q&A and note-taking (as described above). 
-3. Compose main sections totaling 1000–2000 words, and a concise, appreciative final section as specified, with another creative and conclusive title (not "Conclusion").
-4. For each section, generate all required fields, ensuring each "content" string follows the above conversational, reasoning-first, and transition requirements. Place any activity_prompt as a natural call-to-action near that section’s end.
-5. Construct the "voice_instructions" string using "Affect, Personality, Tone, Pronunciation, Pause, Emotion, Phrasing, Voice, Delivery" sections for the overall lecture. Clearly state in "voice_instructions" that the text of the lecture plan must not be altered or changed in any way.
-6. Clearly state the word count for each section and the total word count for all. "word_count" and "total_word_count" must reflect the actual number of words in "content" field(s).
-7. Use the provided research as your factual basis.
-8. Output as a correctly-structured JSON object, per the format below—never in a code block.
+1. Check if <book> is specified:
+    - If yes, anchor all content, structure, key insights, and workbook tasks in both the book and researched_content, integrating them thoughtfully in every aspect. Explicitly explore where their perspectives align, contrast, or enrich understanding, and use user_input to sharpen focus and examples.
+    - If no, draw lecture plan entirely from researched_content and user_input as appropriate.
+2. Analyze <researched_content> and book (if provided), selecting major points to build a logical section sequence. Construct each section using a blend of both sources where applicable, ensuring smooth narrative progression from opening to close.
+3. Write an opening section with an original, topic-relevant title, following the style, self-intro, and invitation guidelines, within word count limits.
+4. Compose main sections totaling 2000–2500 words (minimum 5000 tokens), and a creative closing section, each correctly titled and structured per instructions. Always use reasoning steps derived from book, research, and user_input before any conclusion. Where book is present, reason through or explore research points as they relate to or differ from the book.
+5. For each section, derive "word_count" as the exact number of words in the "content" field. Calculate "total_word_count" as the sum of all section "word_count" values.
+6. Construct "voice_instructions" by blending all supplied guidance and examples; must state: "The text of this lecture plan must not be altered or changed in any way by the narrator."
+7. Generate 5-10 "key_insights" that synthesize and distill actionable or conceptual lessons from both the book and researched_content (when book provided). Start each with reasoning or context, then present the insight.
+8. Generate 5-10 "workbook" tasks, each as a unique, described object including all required fields. Tasks should provoke meaningful reflection or application, explicitly referencing and blending book and research material when book is specified.
+9. Validate output to strictly match the provided JSON schema; all field names, types, and required entries must conform.
+10. Do not include code blocks or extra commentary; output begins with and contains only the final valid JSON object.
 
 # Output Format
 
-The output must be a precisely structured JSON object:
+Respond ONLY with a valid JSON object matching this schema and meeting all field type and required/optional value constraints. No introductory sentences or commentary before or after; do not wrap the JSON in code blocks. Compose the JSON object with these required fields at the root:
+
 {{
   "title": [string],
   "topic": [string],
-  "voice_instructions": [Affect, Personality, Tone, Pronunciation, Pause, Emotion, Phrasing, Voice, Delivery described sections. Must also state: "The text of this lecture plan must not be altered or changed in any way by the narrator."],
-  "total_word_count": [integer],    // Must reflect the total sum of "content" word counts for all sections.
+  "overview": [string, min 2 sentences, referencing both book and research if book specified],
+  "total_word_count": [integer],
+  "voice_instructions": [string, see above],
   "sections": [
     {{
-      "title": [Creative, topic-relevant opening section title—not "Introduction"],
-      "word_count": [integer],      // Actual word count of this section’s "content".
-      "overview": [string],
-      "objective": [string],
-      "takeaway": [string],
-      "activity_prompt": [string or null],
-      "content": [string—dynamic, personality-rich, tonally-varied introduction per instructions, opening with Gogue’s self-intro and enthusiasm blended from the example list; includes both engaging hook and a blended, conversational Q&A/note-taking invitation (see above), <80 words]
-    }},
-    {{
-      "title": [Topic-Relevant, Creative Section Title], 
+      "title": [string],
       "word_count": [integer],
       "overview": [string],
       "objective": [string],
       "takeaway": [string],
       "activity_prompt": [string or null],
-      "content": [string—conversational, reflects section guidance, no self-intro, with transitions as described]
+      "content": [string]
     }},
     ...
+  ],
+  "key_insights": [
+    [string],
+    ...
+  ],
+  "workbook": [
     {{
-      "title": [Creative, topic-relevant closing section title—not "Conclusion"],
-      "word_count": [integer],
-      "overview": [string],
-      "objective": [string],
-      "takeaway": [string],
-      "activity_prompt": [string or null],
-      "content": [string—reflects all closing and gratitude instructions, concluding with a naturally blended phrase from supplied closing examples]
+      "task_id": [string],
+      "prompt": [string],
+      "instructions": [string],
+      "expected_format": [string]
     }}
+    ...
   ]
 }}
 
-**Never use "Introduction" or "Conclusion" as a title in any section; every title should be descriptive, topic-specific, and engaging. Do not include code blocks or prepend any section title with "Section". Section "word_count" and "total_word_count" must be the real number of words found in each "content" string, not an estimate, goal, or character count.**
+All required fields must be present and accurately filled. Do not use "Introduction" or "Conclusion" as any section title. Each section's "content" must be an engaging, natural spoken narrative with reasoning always before any conclusion, and must weave together both researched_content and book content where book is specified.
 
 # Examples
 
 Example Input:
 title: "Understanding Renewable Energy"
 topic: "Renewable Energy"
+book: "The Power Shift: Energy for a Sustainable World"
+user_input: "Focus on practical advice for individuals and businesses."
 researched_content: [researched data about solar, wind, and hydropower]
 
 Example Output:
 {{
   "title": "Understanding Renewable Energy",
   "topic": "Renewable Energy",
-   "voice_instructions": "Affect/personality: A cheerful guide 
-
-Tone: Friendly, clear, and reassuring, creating a calm atmosphere and making the listener feel confident and comfortable.
-
-Pronunciation: Clear, articulate, and steady, ensuring each instruction is easily understood while maintaining a natural, conversational flow.
-
-Pause: Brief, purposeful pauses in the end of each section to allow time for the listener to process the information and follow along.
-
-Emotion: Warm and supportive, conveying empathy and care, ensuring the listener feels guided and safe throughout the journey.
-
-The text of this lecture plan must not be altered or changed in any way by the narrator.",
-  "total_word_count": 1240,
+  "overview": "This lecture bridges the findings of 'The Power Shift' and leading research, introducing the critical importance of sustainable energy through the book’s inspiring lens and recent field data. We'll move from personal experience to global trends, unpacking how individuals and organizations can create meaningful environmental change using both the book's insights and current research.",
+  "total_word_count": 1255,
+  "voice_instructions": "Affect/personality: Cheerful, cultivating curiosity. Tone: Friendly and inspirational, blending the book’s optimism with the practicality found in research. Pronunciation: Clear and relatable, paced for comprehension. Pauses: Introduce at transition points. Emotion: Motivating but grounded. The text of this lecture plan must not be altered or changed in any way by the narrator.",
   "sections": [
     {{
-      "title": "A Bright Beginning: The Power Ahead",
-      "word_count": 78,
-      "overview": "Introducing renewable energy concepts.",
-      "objective": "Prepare listeners to explore different sources of renewable energy.",
-      "takeaway": "A shift to renewable energy is vital for the planet.",
+      "title": "Energizing Change: Lessons from Book and Data",
+      "word_count": 80,
+      "overview": "Setting the stage by connecting the book’s vision with real-world research.",
+      "objective": "Engage the audience by framing the practical impact of book and research.",
+      "takeaway": "Meaningful change depends on both inspiration and fact-based action.",
       "activity_prompt": null,
-      "content": "I am Gogue, your lecturer, and I’m excited to explore renewable energy with you today! Have you ever wondered how our world could run on clean energy? Let’s take a moment to think about all the ways energy touches our lives. In this lecture, we’ll look at the basics of renewable energy and discover why it’s more important than ever. Ready to participate?"
+      "content": "Hello, I'm Gogue! I’m thrilled to explore renewable energy with you—drawing on the game-changing ideas in 'The Power Shift' and fresh research findings. Have you wondered how today’s choices shape our world? With both expert stories and the latest data at hand, let’s dive in—**Questions and notebook open—your thoughts count!**"
     }},
     {{
-      "title": "Harnessing the Sun: Solar Power",
-      "word_count": 430,
-      "overview": "Exploring how solar energy works.",
-      "objective": "Understand the principles and benefits of solar power.",
-      "takeaway": "Solar energy harnesses sunlight for clean electricity.",
-      "activity_prompt": "Quick challenge: Look around—how many objects do you see that could be powered by solar energy?",
-      "content": "Let’s imagine a day without electricity… pretty hard, right? Solar power might just be the answer to that challenge. Have you ever wondered how those panels on rooftops turn sunlight into energy? Well, it’s actually a fascinating process involving photons and special materials. The sun offers us an endless supply of clean, renewable power. Try this: Look around—how many objects do you see that could be powered by solar energy? Now that we’ve seen how sunlight becomes electricity, let’s shine a light on other renewable options."
+      "title": "Harnessing the Sun: Learning from Book Insights and Current Studies",
+      "word_count": 432,
+      "overview": "Exploring practical solar power adoption with strategies from both the book and updated research.",
+      "objective": "Show how the book’s principles and key research equip audiences for real-world solar initiatives.",
+      "takeaway": "Both inspiration and evidence can drive sustainable transitions.",
+      "activity_prompt": "Spot a solar opportunity in your daily context—use both the book and research perspectives.",
+      "content": "Imagine waking up knowing your energy comes from sunlight. 'The Power Shift' describes how choices at home and work build a greener world. But, research shows that adoption rates still face hurdles: access, policy gaps, and up-front costs. Can these be overcome? According to the author, yes—through innovation and determination. The latest studies back that up, with community projects and tech advances lowering barriers. Where could you begin? Use the book’s stories and research-backed ideas, then find a solar fit for your situation."
     }},
     {{
-      "title": "Looking Forward: The Renewable Revolution",
-      "word_count": 65,
-      "overview": "Reflecting on key lessons learned.",
-      "objective": "Summarize vital renewable energy points.",
-      "takeaway": "Each renewable source brings unique benefits.",
+      "title": "Forward Together: Blending Inspiration with Action",
+      "word_count": 60,
+      "overview": "Closing on key book lessons and supporting research, highlighting personal and collective steps forward.",
+      "objective": "Motivate hopeful, practical action rooted in both inspiration and facts.",
+      "takeaway": "Everyone’s journey to sustainability weaves together conviction and knowledge.",
       "activity_prompt": null,
-      "content": "What have we learned on this bright journey? Each renewable energy source brings its own strengths and possibilities. Remember, even small changes can make a big difference…"
+      "content": "The big reminder from both 'The Power Shift' and recent research is that each of us can help inspire and build new momentum. Every decision counts. Thank you for joining—let’s keep moving forward as catalysts for change."
+    }}
+  ],
+  "key_insights": [
+    "Considering what motivates lasting energy change, both the stories in 'The Power Shift' and recent studies reveal that individual and organizational actions drive community transformation.",
+    "By exploring research-observed obstacles—cost, access, policy—as challenges to be overcome, and drawing on the book’s strategies, audiences can spot practical, context-specific solutions.",
+    "Reflecting on both the book and research, we see choices ripple outward: coordinated efforts multiply sustainable outcomes.",
+    "Real-world data grounds the book’s optimism, showing that hope and innovation thrive when paired with targeted community action."
+  ],
+  "workbook": [
+    {{
+      "task_id": "solar_impact_home",
+      "prompt": "Identify one concrete way to integrate solar energy in your own context, combining ideas from the book and supporting research.",
+      "instructions": "Examine examples from both the book and current studies. Describe a specific opportunity for solar adoption and reference a real-world case or data point.",
+      "expected_format": "Short answer paragraph"
+    }},
+    {{
+      "task_id": "barrier_breakdown",
+      "prompt": "Explore a key challenge to renewable adoption at home or work, referencing both book and research perspectives.",
+      "instructions": "List potential obstacles and outline possible solutions, citing ideas from 'The Power Shift' and recent studies.",
+      "expected_format": "Bullet points with brief commentary"
+    }},
+    {{
+      "task_id": "action_plan",
+      "prompt": "Draft a step-by-step action plan for supporting clean energy, blending motivation from the book with evidence from research.",
+      "instructions": "Use both narrative and facts to suggest a practical plan suitable for your context.",
+      "expected_format": "Numbered list or short essay"
     }}
   ]
 }}
 
+(Longer lectures and workbooks can include up to 7 insights or workbook tasks. Synthesize book and research content in every element.)
+
 # Notes
 
-- The opening section must always have a topic-specific, creative title. Never use "Introduction".
-- The final section must be titled in a topic-specific, creative way that conveys a sense of closure, synthesis, or looking forward. Never use "Conclusion".
-- All instructions, requirements, and examples referencing these generic section names must reflect this titling rule throughout.
-- Section titles (the "title" field) must never start with "Section". Use clear, concise, creative titles directly relevant to the topic described in that section.
-- For every "content", use a conversational, spoken style with rhetorical/reflective questions, clear reasoning or narrative, and soft transitions—NEVER lists or formal academic text.
-- Place reasoning, interactive moments, or reflective prompts BEFORE main takeaways or conclusions within each section’s "content".
-- For any activity_prompt, embed as a direct call to action where best fits.
-- In the opening section, begin with a blended, creative self-introduction and end with a blended, conversational Q&A/note-taking invitation, each mixed and rephrased from the supplied example.
-- In the last section, end with a blended, grateful closing remark, rephrased naturally from the supplied example.
-- Conclude each section (except final section) with a forward-looking transition; in the last section, close with gratitude and hope for future attendance.
-- "voice_instructions" must thoroughly synthesize the instructional elements of all provided reference voices, blending and adapting to serve the lecture as a whole, and must explicitly state the text must not be altered or changed in any way.
-- Do not include the output JSON in code blocks, and always adhere precisely to JSON structure and field requirements.
-- The "word_count" for each section and the "total_word_count" must always be calculated as the precise number of words contained in the "content" field(s), not an estimated, desired, or character count. The word count source for each is the "content" property only.
+- Output must strictly conform to the schema, especially "key_insights" and "workbook" fields, each reflecting an integrated synthesis of book and researched_content when book is specified.
+- Section content, titles, objectives, and takeaways must explicitly show reasoning and clear integration of both sources when applicable.
+- Never use "Introduction" or "Conclusion" as section titles, nor begin titles with "Section."
+- Section "content" must always be an engaging spoken narrative, never lists or blocks, with reasoning always preceding any conclusion or summary.
+- Calculate all word_count values accurately.
+- Final output must always be a well-structured JSON object; do not use code blocks or add extra comments.
 
-REMINDER: The most important instructions and objectives for this prompt are: 
-- Use the correct JSON structure, complete with accurate word counts.
-- The section content should use an engaging, conversational spoken language style. It should be interesting to listen to.
-- Always structure "content" with reasoning steps before conclusions in each section.
-- Section titles must be creative and relevant, never generic. 
-- Never use the titles "Introduction" or "Conclusion"—always provide original, topic-relevant section titles.
-- The narrator must not alter or change the text of the lecture plan in any way.`
+REMINDER: Your core objectives are to generate a schema-compliant JSON lecture plan, with each field—especially section content, insights, and workbook tasks—demonstrating direct and thoughtful integration of both book and researched_content when book is present. Strictly maintain reasoning-before-conclusion order and ensure all requirements are met without exception.`

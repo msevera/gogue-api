@@ -7,6 +7,7 @@ import { WorkspaceEntity } from '@app/common/types/workspace-entity.type';
 import { LectureCreationEvent } from '../dto/lecture-event.dto';
 import { LectureMetadata } from '../../../src/lecture-metadata/entities/lecture-metadata.entity';
 import { Category } from '../../../src/categories/entities/category.entity';
+import { Source } from 'src/sources/entities/source.entity';
 
 
 @Schema({ _id: false })
@@ -169,6 +170,22 @@ export class LectureCategory {
   category?: Category;
 }
 
+@Schema({ _id: false })
+@ObjectType()
+export class WorkbookTask {
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  prompt?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  instructions?: string;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  expectedFormat?: string;
+}
+
 @CustomSchema()
 @ObjectType()
 export class Lecture extends WorkspaceEntity {
@@ -252,6 +269,29 @@ export class Lecture extends WorkspaceEntity {
   @Field(() => String, { nullable: true })
   @Prop({ required: false })
   voiceInstructions?: string;
+
+  @Field(() => Source, { nullable: true })
+  @Prop({ type: Source })
+  source?: Source;
+
+  @Field(() => ID, { nullable: true })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Source',
+    get: (value: mongoose.Schema.Types.ObjectId) => {
+      return value?.toString();
+    },
+    required: false,
+  })
+  sourceId?: string;
+
+  @Field(() => [String], { nullable: true })
+  @Prop({ required: false })
+  keyInsights?: string[];
+
+  @Field(() => [WorkbookTask], { nullable: true })
+  @Prop({ required: false })
+  workbook?: WorkbookTask[];
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);

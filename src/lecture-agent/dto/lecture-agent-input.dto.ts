@@ -7,8 +7,13 @@ export class LectureAgentInputDto {
   @IsString()
   @IsNotEmpty()
   input: string;
-  
+
   @IsString()
   @IsOptional()
   lectureId?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  sourceId?: string;
 }
