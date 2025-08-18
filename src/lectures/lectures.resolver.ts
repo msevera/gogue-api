@@ -175,6 +175,13 @@ export class LecturesResolver {
     return this.lecturesService.findOnePublic(id);
   }
 
+  @Query(() => Lecture, { name: 'lectureBySlug', nullable: true })
+  async findOneBySlug(
+    @Args('slug', { type: () => String }) slug: string
+  ) {
+    return this.lecturesService.findOnePublicBySlug(slug);
+  }
+
   @Auth(Role.CONSUMER)
   @Mutation(() => Boolean, { name: 'createLectureAsync' })
   async createOneAsync(
@@ -257,6 +264,38 @@ export class LecturesResolver {
     this.lecturesService.recreateLectureContent(authContext, id);
     return true;
   }
+
+  // @Mutation(() => Boolean, { name: 'testLectureCreation' })
+  // async testLectureCreation(
+  //   @AuthContext() authContext: AuthContextType
+  // ) {
+  //   await this.lecturesService.createOne(authContext, {
+  //     topic: 'test one two three 100 3',
+  //     input: 'test',
+  //     title: 'test',
+  //     emoji: 'test',
+  //     sections: [],
+  //     duration: 0
+  //   });
+
+  //   return true;
+  // }
+
+  // @Mutation(() => Boolean, { name: 'testLectureUpdate' })
+  // async testLectureUpdate(
+  //   @Args('id', { type: () => ID }) id: string,
+  //   @AuthContext() authContext: AuthContextType
+  // ) {
+  //   await this.lecturesService.updateOne(authContext, id, {
+  //     topic: 'test one two three 100 3',
+  //     creationEvent: {
+  //       name: 'DONE',
+  //       showNotification: false
+  //     }
+  //   });
+
+  //   return true;
+  // }
 
   // @Auth(Role.CONSUMER)
   // @Mutation(() => Lecture, { name: 'markLectureAsReady' })

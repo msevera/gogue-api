@@ -8,7 +8,10 @@ import { LectureCreationEvent } from '../dto/lecture-event.dto';
 import { LectureMetadata } from '../../../src/lecture-metadata/entities/lecture-metadata.entity';
 import { Category } from '../../../src/categories/entities/category.entity';
 import { Source } from 'src/sources/entities/source.entity';
+import slugify from 'slug';
 
+
+export type LectureDocument = Lecture & mongoose.Document;
 
 @Schema({ _id: false })
 @ObjectType()
@@ -189,6 +192,10 @@ export class WorkbookTask {
 @CustomSchema()
 @ObjectType()
 export class Lecture extends WorkspaceEntity {
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  slug?: string;
+
   @Field(() => String)
   @Prop({ required: true })
   input: string;
@@ -197,7 +204,6 @@ export class Lecture extends WorkspaceEntity {
   @Prop({ required: false })
   topic?: string;
 
-  @Field(() => [Number], { nullable: true })
   @Prop({ required: false })
   topicEmbeddings?: number[];
 
@@ -295,6 +301,70 @@ export class Lecture extends WorkspaceEntity {
 }
 
 export const LectureEntity = SchemaFactory.createForClass(Lecture);
+LectureEntity.index({ slug: 1 });
+
+async function generateUniqueSlug(this: any, topic: string, excludeId?: string) {
+  const baseSlug = slugify(topic, { lower: true });
+
+  // Determine the correct Model depending on whether we're in document or query middleware
+  const LectureModel =
+    typeof this.getQuery === 'function' && this.model
+      ? this.model
+      : this.constructor;
+
+  // Find all existing slugs starting with baseSlug
+  const existing = await LectureModel.find({
+    slug: { $regex: `^${baseSlug}(-[0-9]+)?$`, $options: 'i' },
+    ...(excludeId ? { _id: { $ne: excludeId } } : {}),
+  }).select('slug');
+
+  if (!existing.length) return baseSlug;
+
+  let maxNum = 0;
+  for (const doc of existing) {
+    // Only consider slugs that start with the baseSlug
+    if (doc.slug?.toLowerCase().startsWith(baseSlug.toLowerCase())) {
+      const match = doc.slug.match(new RegExp(`^${baseSlug}-(\\d+)$`, 'i'));
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+  }
+
+  return `${baseSlug}-${maxNum + 1}`;
+}
+
+// ====== CREATE ======
+LectureEntity.pre<LectureDocument>('save', async function (next) {
+  if (this.isModified('topic')) {
+    this.slug = await generateUniqueSlug.call(this, this.topic, this._id.toString());
+  }
+  next();
+});
+
+// ====== UPDATE ======
+async function updateSlugInQuery(this: any, next: Function) {
+  const update = this.getUpdate();
+  if (!update) return next();
+
+  // Handle both $set.topic and direct topic updates
+  const topic = update.topic ?? update.$set?.topic;
+  if (topic) {
+    const newSlug = await generateUniqueSlug.call(this, topic, this.getQuery()._id?.toString());
+    if (update.$set) {
+      update.$set.slug = newSlug;
+    } else {
+      update.slug = newSlug;
+    }
+    this.setUpdate(update);
+  }
+  next();
+}
+
+LectureEntity.pre('findOneAndUpdate', updateSlugInQuery);
+LectureEntity.pre('updateOne', updateSlugInQuery);
+LectureEntity.pre('updateMany', updateSlugInQuery);
 
 // vector index
 // topic_embeddings_cosine
