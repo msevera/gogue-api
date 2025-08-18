@@ -11,13 +11,11 @@ import { prompt as normalizePrompt } from './prompts/normalize';
 import { prompt as researchPlanPrompt } from './prompts/research-planner';
 import { prompt as researchContentPrompt } from './prompts/research-content';
 import { prompt as compileContentPrompt } from './prompts/compile-content';
-import { prompt as personalizeContentPrompt } from './prompts/personalize-content';
 import { prompt as categoriesPrompt } from './prompts/categories';
 import { responseSchema as researchPlannerAgentResponseSchema } from './schemas/research-planner-agent';
 import { responseSchema as normalizeAgentResponseSchema } from './schemas/normalize-agent';
 import { responseSchema as compileContentAgentResponseSchema } from './schemas/compile-content-agent';
 import { responseSchema as categoriesAgentResponseSchema } from './schemas/categories-agent';
-import { responseSchema as personalizeContentAgentResponseSchema } from './schemas/personalize-content-agent';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { LecturesService } from '../lectures/lectures.service';
 import { CategoriesService } from '../categories/categories.service';
@@ -128,7 +126,6 @@ export class LectureAgentService {
   private researchContentModel: any;
   private compileContentModel: any;
   private categoriesModel: any;
-  private personalizeContentModel: any;
 
   constructor(
     private configService: ConfigService,
@@ -176,19 +173,6 @@ export class LectureAgentService {
       ...modelSettings,
       modelKwargs: {
         response_format: compileContentAgentResponseSchema
-      }
-    });
-
-    this.personalizeContentModel = new ChatOpenAI({
-      model: 'gpt-5',
-      temperature: 1,
-      reasoning: {
-        effort: 'minimal',
-        summary: null
-      },
-      verbosity: 'medium',
-      modelKwargs: {
-        response_format: personalizeContentAgentResponseSchema
       }
     });
 

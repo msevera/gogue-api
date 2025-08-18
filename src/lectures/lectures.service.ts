@@ -68,6 +68,10 @@ export class LecturesService extends AbstractService<Lecture> {
     return this.lecturesRepository.findOne(false, { id });
   }
 
+  async findOnePublicBySlug(slug: string) {   
+    return this.lecturesRepository.findOne(false, { slug });
+  } 
+
   async findOnePending(
     authContext: AuthContextType | false,
   ) {

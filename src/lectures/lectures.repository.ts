@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, RootFilterQuery, UpdateQuery } from 'mongoose';
 import { Lecture } from './entities/lecture.entity';
 import { CurrentAuthRepository } from '@app/common/database/current-auth.repository';
 import { AuthContextType } from '@app/common/decorators/auth-context.decorator';
@@ -8,6 +8,8 @@ import { FindLecturesInputDto } from './dto/find-lectures.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.input.dto';
 import { ObjectId } from 'mongodb';
 import { SearchLecturesInputDto } from './dto/search-lectures.dto';
+import { SessionOptions } from '@app/common/database/options';
+import slug from 'slug';
 
 @Injectable()
 export class LecturesRepository extends CurrentAuthRepository<Lecture> {
@@ -145,4 +147,23 @@ export class LecturesRepository extends CurrentAuthRepository<Lecture> {
       next: null,
     });
   }
+
+  // async updateOne(
+  //   authContext: AuthContextType | false,
+  //   filter: RootFilterQuery<Lecture> & { id?: string },
+  //   update: UpdateQuery<Lecture>,
+  //   options: SessionOptions = {},
+  // ): Promise<Lecture> {
+  //   const baseSlug = slug(update.topic, { lower: true });
+  //   let newSlug = baseSlug;
+  //   let counter = 1;
+
+  //   // Keep checking until we find a unique slug
+  //   while (await this.postModel.exists({ slug })) {
+  //     newSlug = `${baseSlug}-${counter++}`;
+  //   }
+  //   const resource = await super.updateOne(authContext, filter, update, options);
+
+  //   return resource;
+  // }
 } 
