@@ -65,4 +65,9 @@ export class UpsertSourceDto {
   @IsArray()
   @IsOptional()
   keyTakeaways?: string[];
+
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  helpsWith?: string;
 } 

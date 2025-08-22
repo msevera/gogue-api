@@ -109,6 +109,10 @@ export class Source extends CacheEntity {
   @Field(() => [String], { nullable: true })
   @Prop({ required: false })
   keyTakeaways?: string[];
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  helpsWith?: string;
 }
 
 export const SourceEntity = SchemaFactory.createForClass(Source);

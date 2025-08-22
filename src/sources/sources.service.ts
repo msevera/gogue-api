@@ -150,6 +150,7 @@ export class SourceService extends AbstractService<Source> {
                 topic: item.topic,
                 keyInsights: item.keyInsights,
                 keyTakeaways: item.keyTakeaways,
+                helpsWith: item.helpsWith,
               },
             },
           );
@@ -182,6 +183,7 @@ export class SourceService extends AbstractService<Source> {
             topic: item.topic,
             keyInsights: item.keyInsights,
             keyTakeaways: item.keyTakeaways,
+            helpsWith: item.helpsWith,
           });
 
           results.push(created);
